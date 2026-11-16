@@ -20,8 +20,8 @@ targets:
       base:
         PRODUCT_NAME: Coffee & Pi
         PRODUCT_BUNDLE_IDENTIFIER: com.caleb.CoffeeAndPi
-        MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "1"
+        MARKETING_VERSION: "1.0.1"
+        CURRENT_PROJECT_VERSION: "2"
         INFOPLIST_KEY_CFBundleDisplayName: Coffee & Pi
         INFOPLIST_KEY_CFBundleShortVersionString: "$(MARKETING_VERSION)"
         INFOPLIST_KEY_CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
