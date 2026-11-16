@@ -38,6 +38,18 @@ open "build/Build/Products/Debug/Coffee & Pi.app"
 
 Requires: Xcode 15+, `pi` on PATH (`~/.npm-global/bin/pi`), `llama-router` at `~/.local/bin/llama-router`, models/presets under `~/models/`.
 
+## Releases / updates
+
+In-app **Check for Updates** (Settings → More, or the app menu) hits GitHub Releases.
+
+```bash
+# Tag + build Release zip + gh release (needs git remote + gh auth)
+Scripts/release.sh          # current MARKETING_VERSION in project.yml
+Scripts/release.sh 1.0.1    # bump version, then publish
+```
+
+Asset name: `Coffee-and-Pi-<version>-macos.zip` containing `Coffee & Pi.app`.
+
 ## Config already on this machine
 
 - Router: LaunchAgent `com.caleb.llama-router` + `~/models/presets.ini`

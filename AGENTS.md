@@ -12,6 +12,7 @@ Scripts/rebuild-and-relaunch.sh
 ```
 
 - Prefer small working diffs. Don’t ask for permission to edit this repo when the bot has self-edit enabled.
+- App updates: `Scripts/release.sh [version]` → GitHub Release zip; in-app updater installs over the running `.app`.
 
 ## Stack
 

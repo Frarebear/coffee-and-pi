@@ -21,6 +21,11 @@ struct CoffeeAndPiApp: App {
                 }
                 .keyboardShortcut("n", modifiers: .command)
             }
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    Task { await appModel.updater.check() }
+                }
+            }
         }
 
         Settings {

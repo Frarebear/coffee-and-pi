@@ -931,6 +931,36 @@ struct ChatView: View {
                     .padding(.bottom, 6)
                 }
 
+                if case .available(let version, _) = app.updater.status {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.down.app.fill")
+                            .foregroundStyle(CPTheme.accent)
+                        Text("Update \(version) available")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(CPTheme.text)
+                        Spacer()
+                        Button("Install") {
+                            Task { await app.updater.installAvailable() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        Button {
+                            app.updater.status = .idle
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(CPTheme.muted)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(CPTheme.composer)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 6)
+                }
+
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 18) {
@@ -2135,7 +2165,51 @@ struct SettingsView: View {
         }
 
         settingsCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Updates")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                Text("Version \(app.updater.currentVersion)")
+                    .foregroundStyle(CPTheme.text)
+                Text(updateStatusLabel)
+                    .font(.caption)
+                    .foregroundStyle(CPTheme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Button("Check for Updates") {
+                        Task { await app.updater.check() }
+                    }
+                    if case .available = app.updater.status {
+                        Button("Install & Relaunch") {
+                            Task { await app.updater.installAvailable() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    Button("Releases…") {
+                        NSWorkspace.shared.open(app.updater.releasesURL)
+                    }
+                }
+            }
+        }
+
+        settingsCard {
             Button("Replay onboarding…") { app.onboarding.replay() }
+        }
+    }
+
+    private var updateStatusLabel: String {
+        switch app.updater.status {
+        case .idle: return "Checks GitHub Releases on launch."
+        case .checking: return "Checking…"
+        case .upToDate: return "You’re on the latest release."
+        case .available(let v, let notes):
+            let trim = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trim.isEmpty ? "\(v) is ready to install." : "\(v)\n\(String(trim.prefix(240)))"
+        case .downloading(let frac):
+            if let frac { return String(format: "Downloading… %.0f%%", frac * 100) }
+            return "Downloading…"
+        case .installing: return "Installing — app will relaunch…"
+        case .error(let msg): return msg
         }
     }
 

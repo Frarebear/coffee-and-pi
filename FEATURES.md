@@ -111,6 +111,11 @@ Phone / peer Mac must **not** run Pi or load models. Only:
 
 Persistence: `~/Library/Application Support/CoffeeAndPi/node.json`
 
+## Updates
+
+- [x] GitHub Releases updater — launch check + Settings → More + Install & Relaunch
+- [x] `Scripts/release.sh` builds Release zip and publishes `vX.Y.Z`
+
 ## Polish (shipped)
 
 - [x] Self-edit → live UI closed loop (`Scripts/rebuild-and-relaunch.sh` stamps + app banner on relaunch; chats persist)

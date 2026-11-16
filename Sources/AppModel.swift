@@ -33,6 +33,7 @@ final class AppModel: ObservableObject {
     let node = NodeServer()
     let usage = UsageStore()
     let onboarding = OnboardingStore()
+    let updater = AppUpdater()
     let hardware = HardwareContextFitter.HardwareInfo.current()
 
     private var clients: [BeanClientKey: PiRPCClient] = [:]
@@ -59,6 +60,9 @@ final class AppModel: ObservableObject {
             self?.objectWillChange.send()
         })
         nestedBags.append(router.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        })
+        nestedBags.append(updater.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         })
         node.attach(app: self)
@@ -229,6 +233,9 @@ final class AppModel: ObservableObject {
         } else {
             rebuildAvailableModels()
         }
+
+        // Quiet GitHub Releases check — banner only when something newer exists.
+        Task { await updater.check(quiet: true) }
     }
 
     /// Chats whose project was removed (e.g. auto-seed strip) become loose so they stay visible/deletable.
