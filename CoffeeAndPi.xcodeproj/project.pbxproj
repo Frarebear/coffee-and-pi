@@ -1,0 +1,424 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B74E0C1606E985C0E5E0AE7 /* QRCodeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 089AA23F69D260E7DAEC3292 /* QRCodeImage.swift */; };
+		1A2AD4C0C873ED73337AE522 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAC8FE06531CEEA504899BA /* Models.swift */; };
+		23FA6AD405154C18856B1E4D /* HuggingFaceLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA97EA3AEBE53A5B35EE177D /* HuggingFaceLink.swift */; };
+		293019361C347787C2DE0BD3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C98D648F5E316A5FF7601CCD /* Assets.xcassets */; };
+		321238842A6F7304CC4A7763 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C060B50FBA1383907ABE75A0 /* ContentView.swift */; };
+		3982BB266AD6BB8E03D298CF /* PairingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C817B2C8F4A2451BC2AC173E /* PairingStore.swift */; };
+		40EE7A417011650F71D86323 /* CoffeeShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883868AA65DBEE7C1CF73D92 /* CoffeeShopView.swift */; };
+		5080CC7D37B58EDE2FD01FAA /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10CE41519837D637B07B5B5B /* OnboardingStore.swift */; };
+		51E60300C89F21833163A17B /* TableTurnCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF09642625859F949E36FF42 /* TableTurnCoordinator.swift */; };
+		565FD34D9EEACE4B87CA71CF /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C249CB2C778F8769187166A2 /* AuthStore.swift */; };
+		62877BF035BF8D8B29E98B69 /* RouterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E82E3F950F95ABEC5B8B6A /* RouterManager.swift */; };
+		6D660550F1483586CC9D5C01 /* NodeServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02AC683EA808BAA2886EB70 /* NodeServer.swift */; };
+		8B0F4746267C6481D5B62BB1 /* CoffeeAndPiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2829F861529590913BEA262 /* CoffeeAndPiApp.swift */; };
+		9A189C7E98DC33CA0C7EE93C /* BeanPresenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47169FB0A24A3571C05A187 /* BeanPresenceStore.swift */; };
+		A13184538296E724C5D6D312 /* GitHubStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16EA8D9ABF3A81A0B1E7B2E /* GitHubStore.swift */; };
+		A7498AFEBD0E70A0BD935D38 /* HardwareContextFitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DFF727E7293D9699F3BF117 /* HardwareContextFitter.swift */; };
+		AFAD64291216F6CEC2CFEA11 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3398E9B2F9B2B21971212B /* OnboardingView.swift */; };
+		B47467EFA36D977A53022AB4 /* NodeHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319D075249133D7C7C189073 /* NodeHTTPServer.swift */; };
+		B51521C5EDDBAC7773F82194 /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9660149A92022F3800D8EDDA /* ChatStore.swift */; };
+		B7DF7221B554F73D3EF94649 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D80863CEEC8E591737331E /* Theme.swift */; };
+		D4B8E34D59A2AEE439E7A7F2 /* NodeWSHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55339F59ACA879A1739D7A6B /* NodeWSHub.swift */; };
+		D762DEA75CE7447334BDBAE8 /* NodeBonjour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537589AF2C6E70464579BE5F /* NodeBonjour.swift */; };
+		DEB181CD36951B3579CB3967 /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D782BEC0120A6C74D1154728 /* ProjectStore.swift */; };
+		E2D4891C361BA04F1B3FCD75 /* LocalRuntimeInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001B202E76CF0C255C6C7EE /* LocalRuntimeInstaller.swift */; };
+		EB5FDF9AC88F495E30A6F466 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B5468544B4453BFF5351E5 /* AppModel.swift */; };
+		ECA3923BC177C2A70CD2FAF6 /* ModelProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D8C0668FD04239D3B891C3 /* ModelProfileStore.swift */; };
+		F13D5C15906D820F3EE1BCCC /* PiRPCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6359CA7F48BBC6CAD0D1BE62 /* PiRPCClient.swift */; };
+		F7BC5BF868EA75BC64259C4A /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD57416B7852743BDF30077 /* UsageStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		089AA23F69D260E7DAEC3292 /* QRCodeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeImage.swift; sourceTree = "<group>"; };
+		10CE41519837D637B07B5B5B /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
+		2B742EF4AFF9E5AF450B171E /* CoffeeAndPi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoffeeAndPi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		319D075249133D7C7C189073 /* NodeHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeHTTPServer.swift; sourceTree = "<group>"; };
+		537589AF2C6E70464579BE5F /* NodeBonjour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeBonjour.swift; sourceTree = "<group>"; };
+		55339F59ACA879A1739D7A6B /* NodeWSHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeWSHub.swift; sourceTree = "<group>"; };
+		6359CA7F48BBC6CAD0D1BE62 /* PiRPCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiRPCClient.swift; sourceTree = "<group>"; };
+		75D80863CEEC8E591737331E /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		7B3398E9B2F9B2B21971212B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		883868AA65DBEE7C1CF73D92 /* CoffeeShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoffeeShopView.swift; sourceTree = "<group>"; };
+		9660149A92022F3800D8EDDA /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		97E82E3F950F95ABEC5B8B6A /* RouterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterManager.swift; sourceTree = "<group>"; };
+		9DFF727E7293D9699F3BF117 /* HardwareContextFitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareContextFitter.swift; sourceTree = "<group>"; };
+		A1B5468544B4453BFF5351E5 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A2829F861529590913BEA262 /* CoffeeAndPiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoffeeAndPiApp.swift; sourceTree = "<group>"; };
+		C02AC683EA808BAA2886EB70 /* NodeServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeServer.swift; sourceTree = "<group>"; };
+		C060B50FBA1383907ABE75A0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C16EA8D9ABF3A81A0B1E7B2E /* GitHubStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubStore.swift; sourceTree = "<group>"; };
+		C249CB2C778F8769187166A2 /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
+		C817B2C8F4A2451BC2AC173E /* PairingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingStore.swift; sourceTree = "<group>"; };
+		C98D648F5E316A5FF7601CCD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CA97EA3AEBE53A5B35EE177D /* HuggingFaceLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HuggingFaceLink.swift; sourceTree = "<group>"; };
+		CAAC8FE06531CEEA504899BA /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		D782BEC0120A6C74D1154728 /* ProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStore.swift; sourceTree = "<group>"; };
+		DDD57416B7852743BDF30077 /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
+		EF09642625859F949E36FF42 /* TableTurnCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableTurnCoordinator.swift; sourceTree = "<group>"; };
+		F001B202E76CF0C255C6C7EE /* LocalRuntimeInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalRuntimeInstaller.swift; sourceTree = "<group>"; };
+		F47169FB0A24A3571C05A187 /* BeanPresenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeanPresenceStore.swift; sourceTree = "<group>"; };
+		F8D8C0668FD04239D3B891C3 /* ModelProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelProfileStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		102514B0FA9D88B3E2DE83E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2B742EF4AFF9E5AF450B171E /* CoffeeAndPi.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		181A713D6D4167565FE8B95D = {
+			isa = PBXGroup;
+			children = (
+				7B683D4F5160D301847CFA2D /* Resources */,
+				907CF366116FF73008F5400A /* Sources */,
+				102514B0FA9D88B3E2DE83E3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7B683D4F5160D301847CFA2D /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C98D648F5E316A5FF7601CCD /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		907CF366116FF73008F5400A /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A1B5468544B4453BFF5351E5 /* AppModel.swift */,
+				C249CB2C778F8769187166A2 /* AuthStore.swift */,
+				F47169FB0A24A3571C05A187 /* BeanPresenceStore.swift */,
+				9660149A92022F3800D8EDDA /* ChatStore.swift */,
+				A2829F861529590913BEA262 /* CoffeeAndPiApp.swift */,
+				883868AA65DBEE7C1CF73D92 /* CoffeeShopView.swift */,
+				C060B50FBA1383907ABE75A0 /* ContentView.swift */,
+				C16EA8D9ABF3A81A0B1E7B2E /* GitHubStore.swift */,
+				9DFF727E7293D9699F3BF117 /* HardwareContextFitter.swift */,
+				CA97EA3AEBE53A5B35EE177D /* HuggingFaceLink.swift */,
+				F001B202E76CF0C255C6C7EE /* LocalRuntimeInstaller.swift */,
+				F8D8C0668FD04239D3B891C3 /* ModelProfileStore.swift */,
+				CAAC8FE06531CEEA504899BA /* Models.swift */,
+				537589AF2C6E70464579BE5F /* NodeBonjour.swift */,
+				319D075249133D7C7C189073 /* NodeHTTPServer.swift */,
+				C02AC683EA808BAA2886EB70 /* NodeServer.swift */,
+				55339F59ACA879A1739D7A6B /* NodeWSHub.swift */,
+				10CE41519837D637B07B5B5B /* OnboardingStore.swift */,
+				7B3398E9B2F9B2B21971212B /* OnboardingView.swift */,
+				C817B2C8F4A2451BC2AC173E /* PairingStore.swift */,
+				6359CA7F48BBC6CAD0D1BE62 /* PiRPCClient.swift */,
+				D782BEC0120A6C74D1154728 /* ProjectStore.swift */,
+				089AA23F69D260E7DAEC3292 /* QRCodeImage.swift */,
+				97E82E3F950F95ABEC5B8B6A /* RouterManager.swift */,
+				EF09642625859F949E36FF42 /* TableTurnCoordinator.swift */,
+				75D80863CEEC8E591737331E /* Theme.swift */,
+				DDD57416B7852743BDF30077 /* UsageStore.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BF6C38DB827EEDC687A67562 /* CoffeeAndPi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA981903279315501A9DDA8C /* Build configuration list for PBXNativeTarget "CoffeeAndPi" */;
+			buildPhases = (
+				96C727ADE50E77B6C9B2842E /* Sources */,
+				298125E074279917B84402E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CoffeeAndPi;
+			packageProductDependencies = (
+			);
+			productName = CoffeeAndPi;
+			productReference = 2B742EF4AFF9E5AF450B171E /* CoffeeAndPi.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C42556EFA30D638667A408B0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					BF6C38DB827EEDC687A67562 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 9D240B0D742250696ABAB2D9 /* Build configuration list for PBXProject "CoffeeAndPi" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 181A713D6D4167565FE8B95D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 102514B0FA9D88B3E2DE83E3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BF6C38DB827EEDC687A67562 /* CoffeeAndPi */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		298125E074279917B84402E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				293019361C347787C2DE0BD3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		96C727ADE50E77B6C9B2842E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EB5FDF9AC88F495E30A6F466 /* AppModel.swift in Sources */,
+				565FD34D9EEACE4B87CA71CF /* AuthStore.swift in Sources */,
+				9A189C7E98DC33CA0C7EE93C /* BeanPresenceStore.swift in Sources */,
+				B51521C5EDDBAC7773F82194 /* ChatStore.swift in Sources */,
+				8B0F4746267C6481D5B62BB1 /* CoffeeAndPiApp.swift in Sources */,
+				40EE7A417011650F71D86323 /* CoffeeShopView.swift in Sources */,
+				321238842A6F7304CC4A7763 /* ContentView.swift in Sources */,
+				A13184538296E724C5D6D312 /* GitHubStore.swift in Sources */,
+				A7498AFEBD0E70A0BD935D38 /* HardwareContextFitter.swift in Sources */,
+				23FA6AD405154C18856B1E4D /* HuggingFaceLink.swift in Sources */,
+				E2D4891C361BA04F1B3FCD75 /* LocalRuntimeInstaller.swift in Sources */,
+				ECA3923BC177C2A70CD2FAF6 /* ModelProfileStore.swift in Sources */,
+				1A2AD4C0C873ED73337AE522 /* Models.swift in Sources */,
+				D762DEA75CE7447334BDBAE8 /* NodeBonjour.swift in Sources */,
+				B47467EFA36D977A53022AB4 /* NodeHTTPServer.swift in Sources */,
+				6D660550F1483586CC9D5C01 /* NodeServer.swift in Sources */,
+				D4B8E34D59A2AEE439E7A7F2 /* NodeWSHub.swift in Sources */,
+				5080CC7D37B58EDE2FD01FAA /* OnboardingStore.swift in Sources */,
+				AFAD64291216F6CEC2CFEA11 /* OnboardingView.swift in Sources */,
+				3982BB266AD6BB8E03D298CF /* PairingStore.swift in Sources */,
+				F13D5C15906D820F3EE1BCCC /* PiRPCClient.swift in Sources */,
+				DEB181CD36951B3579CB3967 /* ProjectStore.swift in Sources */,
+				0B74E0C1606E985C0E5E0AE7 /* QRCodeImage.swift in Sources */,
+				62877BF035BF8D8B29E98B69 /* RouterManager.swift in Sources */,
+				51E60300C89F21833163A17B /* TableTurnCoordinator.swift in Sources */,
+				B7DF7221B554F73D3EF94649 /* Theme.swift in Sources */,
+				F7BC5BF868EA75BC64259C4A /* UsageStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0B6CC373A14BD4D6C460D1D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		468A94718AC8FC9F00E37BB9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoffeeAndPi.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Coffee & Pi";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSBonjourServices = (
+					_coffeeandpi._tcp.,
+				);
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Coffee & Pi finds and serves your other devices on the local network.";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.caleb.CoffeeAndPi;
+				PRODUCT_NAME = "Coffee & Pi";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		8337407ADBFE656C714BB941 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		EA22337CEF631E4A1F6693C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoffeeAndPi.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Coffee & Pi";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSBonjourServices = (
+					_coffeeandpi._tcp.,
+				);
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Coffee & Pi finds and serves your other devices on the local network.";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.caleb.CoffeeAndPi;
+				PRODUCT_NAME = "Coffee & Pi";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9D240B0D742250696ABAB2D9 /* Build configuration list for PBXProject "CoffeeAndPi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B6CC373A14BD4D6C460D1D4 /* Debug */,
+				8337407ADBFE656C714BB941 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DA981903279315501A9DDA8C /* Build configuration list for PBXNativeTarget "CoffeeAndPi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EA22337CEF631E4A1F6693C8 /* Debug */,
+				468A94718AC8FC9F00E37BB9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C42556EFA30D638667A408B0 /* Project object */;
+}
