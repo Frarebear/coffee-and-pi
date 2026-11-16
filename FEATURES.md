@@ -5,7 +5,7 @@ Source of truth from product chats, including backend transcript
 
 ## Core product
 
-- [x] First-launch onboarding — pick engines (local / MLX / OpenAI / Claude / OpenRouter / Grok / Copilot / Codex / Cursor Bean), connect 1-by-1, install Pi + llama router (+ optional mlx-lm), then tour Beans / Projects / Coffee Shop (phone pairing omitted for now; Skip anytime; Settings → Replay)
+- [x] First-launch onboarding — pick engines (local / MLX / OpenAI·ChatGPT / Claude / OpenRouter / Grok / Cursor), connect 1-by-1, install Pi + llama router (+ optional mlx-lm), then tour Beans / Projects / Coffee Shop (phone pairing omitted for now; Skip anytime; Settings → Replay)
 - [x] Mac app = Pi chat (Grok Bot–clean UI)
 - [x] Real Pi embedded (`pi --mode rpc`)
 - [x] Local llama.cpp multi-model router under the app (no Ollama)

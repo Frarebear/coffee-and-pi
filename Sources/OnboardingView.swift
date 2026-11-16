@@ -317,13 +317,19 @@ struct OnboardingView: View {
 
     private func cloudConnectPanel(_ engine: OnboardingStore.Engine) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let pid = engine.piProviderID, installer.hasProvider(pid) {
+            if isEngineConnected(engine) {
                 Label("Already connected in ~/.pi/agent/auth.json", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(CPTheme.accent)
                     .font(.system(size: 13))
             }
 
-            if engine.acceptsAPIKey && engine.prefersOAuth {
+            if engine == .openai {
+                Picker("Method", selection: $useOAuth) {
+                    Text("ChatGPT / Codex").tag(true)
+                    Text("API key").tag(false)
+                }
+                .pickerStyle(.segmented)
+            } else if engine.acceptsAPIKey && engine.prefersOAuth {
                 Picker("Method", selection: $useOAuth) {
                     Text("Account (browser)").tag(true)
                     Text("API key").tag(false)
@@ -340,13 +346,15 @@ struct OnboardingView: View {
             }
 
             if engine.prefersOAuth && (useOAuth || !engine.acceptsAPIKey) {
-                Text("Opens Terminal for `pi auth login` — finish sign-in there, then hit Continue.")
+                Text(engine == .openai
+                      ? "Opens Terminal for ChatGPT / Codex sign-in (`pi auth login openai-codex`)."
+                      : "Opens Terminal for `pi auth login` — finish sign-in there, then hit Continue.")
                     .font(.caption)
                     .foregroundStyle(CPTheme.muted)
                 Button("Open sign-in in Terminal") {
                     Task { await openOAuth(engine) }
                 }
-                .disabled(store.isBusy || engine.piProviderID == nil)
+                .disabled(store.isBusy || oauthProviderID(for: engine) == nil)
             }
         }
         .padding(12)
@@ -357,6 +365,16 @@ struct OnboardingView: View {
             apiKeyDraft = ""
             installer.refresh()
         }
+    }
+
+    private func isEngineConnected(_ engine: OnboardingStore.Engine) -> Bool {
+        if let pid = engine.piProviderID, installer.hasProvider(pid) { return true }
+        return engine.alternatePiProviderIDs.contains { installer.hasProvider($0) }
+    }
+
+    private func oauthProviderID(for engine: OnboardingStore.Engine) -> String? {
+        if engine == .openai { return "openai-codex" }
+        return engine.piProviderID
     }
 
     private var tourBeanStep: some View {
@@ -497,7 +515,7 @@ struct OnboardingView: View {
     }
 
     private func openOAuth(_ engine: OnboardingStore.Engine) async {
-        guard let pid = engine.piProviderID else { return }
+        guard let pid = oauthProviderID(for: engine) else { return }
         store.isBusy = true
         do {
             if installer.resolvePiPath() == nil {
@@ -543,7 +561,7 @@ struct OnboardingView: View {
                         }
                         try installer.saveAPIKey(provider: pid, key: key)
                         apiKeyDraft = ""
-                    } else if !installer.hasProvider(pid) {
+                    } else if !isEngineConnected(engine) {
                         store.statusMessage = "Sign in first (or skip)"
                         return
                     }

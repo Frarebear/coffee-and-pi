@@ -12,7 +12,7 @@ macOS SwiftUI app: **Pi chat** with a Grok Bot–clean UI, backed by a local **l
 
 ## Features (v1)
 
-- **First-launch onboarding**: pick local / MLX / OpenAI / Claude / OpenRouter / Grok / Copilot / Codex / Cursor Bean, connect one-by-one, tour Beans · Projects · Coffee Shop (phone pairing later; Settings → Replay)
+- **First-launch onboarding**: pick local / MLX / OpenAI·ChatGPT / Claude / OpenRouter / Grok / Cursor, connect one-by-one, tour Beans · Projects · Coffee Shop (phone pairing later; Settings → Replay)
 - Launch starts / attaches to the local router
 - Multi-chat (multiple Pi RPC sessions; router `models-max` defaults to 2)
 - Composer model dropdown (router models synced into Pi) + thinking levels

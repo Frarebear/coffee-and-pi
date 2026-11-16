@@ -7,6 +7,8 @@ final class AppModel: ObservableObject {
     @Published var threads: [ChatThread] = []
     @Published var activeThreadID: UUID?
     @Published var availableModels: [PiModel] = []
+    /// Pi discoverable slash commands (prompts / skills / extensions) + app builtins.
+    @Published var slashCommands: [SlashCommand] = []
     @Published var draft: String = ""
     @Published var bootError: String?
     @Published var detailPane: DetailPane = .chat
@@ -1026,11 +1028,93 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Built-ins we handle in-app (Pi TUI-only commands are not in get_commands).
+    static let appSlashCommands: [SlashCommand] = [
+        SlashCommand(name: "new", description: "Start a new chat", source: "app"),
+        SlashCommand(name: "compact", description: "Compact this chat’s context", source: "app"),
+        SlashCommand(name: "reload-commands", description: "Refresh slash commands from Pi", source: "app"),
+    ]
+
+    func refreshSlashCommands() async {
+        var list = Self.appSlashCommands
+        if let thread = activeThread {
+            let key = primaryKey(for: thread)
+            if let client = clients[key], await client.isRunning,
+               let remote = try? await client.getCommands() {
+                list.append(contentsOf: remote)
+            }
+        }
+        // De-dupe by name (prefer non-app if clash).
+        var seen = Set<String>()
+        slashCommands = list.filter { cmd in
+            if seen.contains(cmd.name) { return false }
+            seen.insert(cmd.name)
+            return true
+        }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    func filteredSlashCommands(for draft: String) -> [SlashCommand] {
+        let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("/") else { return [] }
+        let q = String(trimmed.dropFirst()).lowercased()
+        if q.isEmpty { return slashCommands }
+        if q.contains(where: { $0.isWhitespace }) { return [] }
+        return slashCommands.filter { $0.name.lowercased().hasPrefix(q) || $0.name.lowercased().contains(q) }
+    }
+
+    func applySlashCommand(_ command: SlashCommand) {
+        draft = "/\(command.name) "
+    }
+
     func send() async {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, let idx = activeThreadIndex else { return }
+        guard !text.isEmpty else { return }
+
+        if text.hasPrefix("/") {
+            let handled = await handleSlashIfNeeded(text)
+            if handled {
+                draft = ""
+                return
+            }
+        }
+
+        guard let idx = activeThreadIndex else { return }
         draft = ""
         await sendMessage(threadID: threads[idx].id, text: text)
+    }
+
+    /// Returns true if the slash was fully handled locally (don’t also prompt Pi).
+    private func handleSlashIfNeeded(_ text: String) async -> Bool {
+        let body = String(text.dropFirst())
+        let parts = body.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+        guard let namePart = parts.first else { return false }
+        let name = String(namePart)
+        let args = parts.count > 1 ? String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines) : ""
+
+        switch name {
+        case "new":
+            await newChat()
+            return true
+        case "reload-commands":
+            await refreshSlashCommands()
+            return true
+        case "compact":
+            guard let thread = activeThread else { return true }
+            let key = primaryKey(for: thread)
+            await ensureClient(for: thread.id)
+            guard let client = clients[key], await client.isRunning else { return true }
+            do {
+                try await client.compact(customInstructions: args.isEmpty ? nil : args)
+            } catch {
+                if let idx = activeThreadIndex {
+                    threads[idx].lastError = error.localizedDescription
+                }
+            }
+            return true
+        default:
+            // Prompt templates / skills / extensions: send as `/name …` to Pi.
+            return false
+        }
     }
 
     enum RemoteSendError: LocalizedError {

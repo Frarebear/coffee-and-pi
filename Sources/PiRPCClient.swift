@@ -300,6 +300,16 @@ actor PiRPCClient {
 
 // MARK: - Types
 
+struct SlashCommand: Identifiable, Hashable, Sendable {
+    var id: String { "\(source):\(name)" }
+    let name: String
+    let description: String?
+    /// `extension` | `prompt` | `skill` | `app` (Coffee & Pi local)
+    let source: String
+
+    var menuLabel: String { "/\(name)" }
+}
+
 struct RPCResponse: Sendable {
     let id: String?
     let command: String
@@ -307,10 +317,12 @@ struct RPCResponse: Sendable {
     let error: String?
     let models: [PiModel]
     let messages: [ChatMessage]
+    let commands: [SlashCommand]
 
     static func parse(_ obj: [String: Any]) -> RPCResponse {
         var models: [PiModel] = []
         var messages: [ChatMessage] = []
+        var commands: [SlashCommand] = []
         if let data = obj["data"] as? [String: Any],
            let rows = data["models"] as? [[String: Any]] {
             models = rows.compactMap(PiModel.fromRPC)
@@ -323,13 +335,25 @@ struct RPCResponse: Sendable {
            let rows = data["messages"] as? [[String: Any]] {
             messages = rows.compactMap(ChatMessage.fromRPC)
         }
+        if let data = obj["data"] as? [String: Any],
+           let rows = data["commands"] as? [[String: Any]] {
+            commands = rows.compactMap { row in
+                guard let name = row["name"] as? String, !name.isEmpty else { return nil }
+                return SlashCommand(
+                    name: name,
+                    description: row["description"] as? String,
+                    source: row["source"] as? String ?? "prompt"
+                )
+            }
+        }
         return RPCResponse(
             id: obj["id"] as? String,
             command: obj["command"] as? String ?? "",
             success: obj["success"] as? Bool ?? false,
             error: obj["error"] as? String,
             models: models,
-            messages: messages
+            messages: messages,
+            commands: commands
         )
     }
 }

@@ -1084,9 +1084,51 @@ struct ComposerView: View {
     @EnvironmentObject private var app: AppModel
     @FocusState private var focused: Bool
 
+    private var slashMatches: [SlashCommand] {
+        app.filteredSlashCommands(for: app.draft)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .bottom, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
+            if !slashMatches.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(slashMatches.prefix(8)) { cmd in
+                        Button {
+                            app.applySlashCommand(cmd)
+                        } label: {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(cmd.menuLabel)
+                                    .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(CPTheme.text)
+                                if let desc = cmd.description, !desc.isEmpty {
+                                    Text(desc)
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(CPTheme.muted)
+                                        .lineLimit(1)
+                                }
+                                Spacer(minLength: 0)
+                                Text(cmd.source)
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(CPTheme.muted.opacity(0.8))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(CPTheme.panel)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(CPTheme.border, lineWidth: 1)
+                )
+            }
+
+            HStack(alignment: .top, spacing: 10) {
                 TextField(
                     composerPlaceholder,
                     text: $app.draft,
@@ -1098,6 +1140,11 @@ struct ComposerView: View {
                     .lineLimit(1...8)
                     .focused($focused)
                     .onSubmit {
+                        if let only = slashMatches.first, slashMatches.count == 1,
+                           app.draft.trimmingCharacters(in: .whitespacesAndNewlines) == "/\(only.name)"
+                            || app.draft.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("/\(only.name)") {
+                            // Enter on a slash pick → run it
+                        }
                         Task { await app.send() }
                     }
 
@@ -1106,20 +1153,22 @@ struct ComposerView: View {
                         Task { await app.abort() }
                     } label: {
                         Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 28))
+                            .font(.system(size: 26))
                             .foregroundStyle(CPTheme.text)
                     }
                     .buttonStyle(.plain)
+                    .padding(.top, 1)
                 } else {
                     Button {
                         Task { await app.send() }
                     } label: {
                         Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 28))
+                            .font(.system(size: 26))
                             .foregroundStyle(app.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? CPTheme.muted : CPTheme.accent)
                     }
                     .buttonStyle(.plain)
                     .disabled(app.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .padding(.top, 1)
                 }
             }
 
@@ -1274,10 +1323,25 @@ struct ComposerView: View {
 
 // MARK: - Settings (detail pane; opened from sidebar bottom)
 
+private enum SettingsTab: String, CaseIterable, Identifiable {
+    case models, cloud, devices, more
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .models: return "Models"
+        case .cloud: return "Cloud"
+        case .devices: return "Devices"
+        case .more: return "More"
+        }
+    }
+}
+
 struct SettingsView: View {
     @EnvironmentObject private var app: AppModel
-    @State private var providerName = ""
-    @State private var useAPIKey = true
+    @State private var tab: SettingsTab = .models
+    @State private var selectedCloudProvider: CloudProviderOption = .openrouter
+    @State private var cloudAuthIsAPIKey = true
+    @State private var cloudAPIKey = ""
     @State private var statusMessage: String?
     @State private var githubDraft = ""
     @State private var hfLink = ""
@@ -1287,370 +1351,50 @@ struct SettingsView: View {
     @State private var botInstructionsDraft = ""
     @State private var nodeNameDraft = ""
     @State private var pairCodeVisible = ""
+    @State private var showAdvancedModel = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack {
-                    Button {
-                        app.detailPane = .chat
-                    } label: {
-                        Label("Back to chat", systemImage: "chevron.left")
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(CPTheme.muted)
-                    Spacer()
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Button {
+                    app.detailPane = .chat
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
                 }
-
+                .buttonStyle(.plain)
+                .foregroundStyle(CPTheme.muted)
+                Spacer()
                 Text("Settings")
-                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .foregroundStyle(CPTheme.text)
+                Spacer()
+                Color.clear.frame(width: 44, height: 1)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
 
-                GroupBox("Onboarding") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Replay the first-launch walkthrough (engines, local/MLX install, Beans, Projects, Coffee Shop). Does not wipe your data.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Button("Replay onboarding…") {
-                            app.onboarding.replay()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                devicesSection
-
-                GroupBox("Local router") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(routerLabel)
-                        Text("Hardware · \(app.hardware.label)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("Auto ctx uses llama-fit-params (fallback: RAM heuristic).")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        HStack {
-                            Button("Refresh") {
-                                Task {
-                                    await app.router.refresh()
-                                    app.syncProfilesFromRouter()
-                                    app.rebuildAvailableModels()
-                                }
-                            }
-                            Button("Restart router") {
-                                Task {
-                                    do {
-                                        try await app.router.restartRouter()
-                                        app.syncProfilesFromRouter()
-                                        app.rebuildAvailableModels()
-                                        statusMessage = "Router restarted"
-                                    } catch {
-                                        statusMessage = error.localizedDescription
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                GroupBox("Download from Hugging Face") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Paste a huggingface.co link or owner/repo[:QUANT]. Defaults to Q4_K_M.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        TextField("https://huggingface.co/… or owner/repo:Q4_K_M", text: $hfLink)
-                            .textFieldStyle(.roundedBorder)
-                        HStack {
-                            Button(app.router.isDownloading ? "Downloading…" : "Download") {
-                                Task { await downloadHF() }
-                            }
-                            .disabled(hfLink.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || app.router.isDownloading)
-                            if app.router.isDownloading {
-                                Button("Cancel") {
-                                    Task { await app.router.cancelDownload() }
-                                }
-                            }
-                        }
-                        if let progress = app.router.downloadProgress {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(progress.message)
-                                    .font(.caption)
-                                ProgressView(value: progress.ratio ?? 0, total: 1)
-                                    .progressViewStyle(.linear)
-                                if let detail = progress.detail {
-                                    Text(detail).font(.caption2).foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        if let err = app.router.lastDownloadError {
-                            Text(err).font(.caption).foregroundStyle(.red)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                GroupBox("Local models") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        if app.router.routerModels.isEmpty {
-                            Text("No router models yet — download one above.")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Picker("Model", selection: Binding(
-                                get: { selectedModelID ?? app.router.routerModels.first?.id ?? "" },
-                                set: { selectModel($0) }
-                            )) {
-                                ForEach(app.router.routerModels) { m in
-                                    Text(m.loaded ? "\(m.id) · loaded" : m.id).tag(m.id)
-                                }
-                            }
-                        }
-
-                        if draftProfile != nil {
-                            modelKnobsEditor(draft: Binding(
-                                get: { draftProfile! },
-                                set: { draftProfile = $0 }
-                            ))
-                        }
-
-                        if let modelStatus {
-                            Text(modelStatus).font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                if let bean = app.projects.activeBean {
-                    GroupBox("Active bean · instructions") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(bean.projectID.flatMap { pid in app.projects.projects.first { $0.id == pid }?.name }.map { "\($0) / \(bean.name)" } ?? bean.name)
-                                .font(.headline)
-                            Text("Optional. The name already carries the job — refine here only if you want. Per-model prompt above is appended for local models.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            TextEditor(text: $botInstructionsDraft)
-                                .font(.system(size: 12, design: .monospaced))
-                                .frame(minHeight: 100, maxHeight: 180)
-                                .border(CPTheme.border)
-                            Button("Save bean prompt") {
-                                var updated = bean
-                                updated.instructions = botInstructionsDraft
-                                app.projects.updateBean(updated)
-                                statusMessage = "Saved bean prompt"
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(6)
-                    }
-                    .onAppear { botInstructionsDraft = bean.instructions }
-                    .onChange(of: bean.id) { _, _ in botInstructionsDraft = bean.instructions }
-                }
-
-                if let project = app.projects.activeProject {
-                    GroupBox("Active project · GitHub") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(project.name).font(.headline)
-                            Text(project.path).font(.caption).foregroundStyle(.secondary)
-                            if project.hasGitHub {
-                                HStack {
-                                    Text(project.githubRemote)
-                                    Button("Open") { app.github.openRepo(project.githubRemote) }
-                                    Button("Clear") { app.projects.setGitHub(projectID: project.id, remote: "") }
-                                }
-                            } else {
-                                HStack {
-                                    TextField("owner/repo", text: $githubDraft)
-                                        .textFieldStyle(.roundedBorder)
-                                    Button("Connect") {
-                                        app.projects.setGitHub(projectID: project.id, remote: githubDraft)
-                                        githubDraft = ""
-                                    }
-                                    Button("Detect") {
-                                        Task {
-                                            if let remote = await app.github.detectRemote(at: project.path) {
-                                                app.projects.setGitHub(projectID: project.id, remote: remote)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            if let login = app.github.loggedInLogin {
-                                Text("gh · \(login)").font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(6)
-                    }
-                }
-
-                GroupBox("Usage") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("Subs + OpenRouter")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Button(app.usage.isRefreshingOpenRouter ? "Refreshing…" : "Refresh") {
-                                Task { await app.refreshUsage() }
-                            }
-                            .disabled(app.usage.isRefreshingOpenRouter)
-                        }
-
-                        if let or = app.usage.openRouter {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("OpenRouter\(or.label.map { " · \($0)" } ?? "")")
-                                    .font(.headline)
-                                if let err = or.error {
-                                    Text(err).font(.caption).foregroundStyle(.red)
-                                } else {
-                                    Text(or.remainingLabel)
-                                    Text(String(format: "Today $%.2f · Week $%.2f · Month $%.2f",
-                                                or.usageDaily, or.usageWeekly, or.usageMonthly))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        } else if app.auth.openRouterAPIKey == nil {
-                            Text("Import openrouter to see live credit usage.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        if app.usage.stats.isEmpty {
-                            Text("Local turn counts show up here after you chat.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(app.usage.stats) { row in
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(row.provider)
-                                        Text(row.kindLabel)
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    VStack(alignment: .trailing, spacing: 2) {
-                                        Text("\(row.messages) turns")
-                                        Text("~\(row.estimatedTokens.formatted()) tok")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                GroupBox("Imported subscriptions") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if app.auth.providers.isEmpty {
-                            Text("No providers in ~/.pi/agent/auth.json yet. Local llama.cpp still works.")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(app.auth.providers) { p in
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(p.name)
-                                        Text(p.type).font(.caption).foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    Button("Logout") {
-                                        Task { try? await app.auth.logout(provider: p.name) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                GroupBox("Import provider") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        TextField("Provider (openai, anthropic, openrouter, …)", text: $providerName)
-                            .textFieldStyle(.roundedBorder)
-                        Toggle("API key login", isOn: $useAPIKey)
-                        Button("Import via Pi auth") {
-                            Task {
-                                do {
-                                    try await app.auth.login(
-                                        provider: providerName.trimmingCharacters(in: .whitespacesAndNewlines),
-                                        apiKey: useAPIKey
-                                    )
-                                    statusMessage = "Imported \(providerName)"
-                                    providerName = ""
-                                    await app.refreshModelsFromPi()
-                                } catch {
-                                    statusMessage = error.localizedDescription
-                                }
-                            }
-                        }
-                        .disabled(providerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
-                        if let statusMessage {
-                            Text(statusMessage).font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                GroupBox("Archived") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        let archivedBeans = app.projects.archivedBeans()
-                        let archivedChats = app.archivedChats()
-                        if archivedBeans.isEmpty && archivedChats.isEmpty {
-                            Text("Nothing archived. Use ⋯ on a bean or chat to archive.")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            if !archivedBeans.isEmpty {
-                                Text("Beans").font(.caption).foregroundStyle(.secondary)
-                                ForEach(archivedBeans) { bean in
-                                    HStack {
-                                        Text(bean.name)
-                                        Spacer()
-                                        Button("Restore") { app.unarchiveBean(bean.id) }
-                                        Button("Delete…", role: .destructive) { app.deleteBean(bean.id) }
-                                    }
-                                }
-                            }
-                            if !archivedChats.isEmpty {
-                                Text("Chats").font(.caption).foregroundStyle(.secondary)
-                                ForEach(archivedChats) { thread in
-                                    HStack {
-                                        Text(thread.title)
-                                            .lineLimit(1)
-                                        Spacer()
-                                        Button("Restore") { app.unarchiveThread(thread.id) }
-                                        Button("Delete…", role: .destructive) { app.deleteThread(thread.id) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                }
-
-                GroupBox("Self-edit") {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Self-edit beans run in a project folder and can change Coffee & Pi itself.")
-                        Text("Rebuild: Scripts/rebuild-and-relaunch.sh")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
+            Picker("", selection: $tab) {
+                ForEach(SettingsTab.allCases) { t in
+                    Text(t.label).tag(t)
                 }
             }
-            .padding(28)
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 14)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    switch tab {
+                    case .models: modelsTab
+                    case .cloud: cloudTab
+                    case .devices: devicesTab
+                    case .more: moreTab
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 28)
+            }
         }
         .background(CPTheme.bg)
         .onAppear {
@@ -1660,6 +1404,9 @@ struct SettingsView: View {
             if selectedModelID == nil {
                 selectModel(app.router.routerModels.first?.id)
             }
+            if let bean = app.projects.activeBean {
+                botInstructionsDraft = bean.instructions
+            }
             Task {
                 await app.github.refreshAuth()
                 await app.refreshUsage()
@@ -1667,125 +1414,432 @@ struct SettingsView: View {
         }
     }
 
-    @ViewBuilder
-    private var devicesSection: some View {
-        GroupBox("Devices") {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("This Mac is your server. The phone is a thin client — every chat/model request goes through this computer’s API (Pi + models stay here). Pair with QR or a device code — no Coffee & Pi account.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    // MARK: Models
 
+    @ViewBuilder
+    private var modelsTab: some View {
+        settingsCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(routerLabel)
+                        .foregroundStyle(CPTheme.text)
+                    Text(app.hardware.label)
+                        .font(.caption)
+                        .foregroundStyle(CPTheme.muted)
+                }
+                Spacer()
+                Button("Refresh") {
+                    Task {
+                        await app.router.refresh()
+                        app.syncProfilesFromRouter()
+                        app.rebuildAvailableModels()
+                    }
+                }
+                Button("Restart") {
+                    Task {
+                        do {
+                            try await app.router.restartRouter()
+                            app.syncProfilesFromRouter()
+                            app.rebuildAvailableModels()
+                        } catch {
+                            modelStatus = error.localizedDescription
+                        }
+                    }
+                }
+            }
+        }
+
+        settingsCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Download")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                HStack {
+                    TextField("huggingface.co/… or owner/repo:Q4_K_M", text: $hfLink)
+                        .textFieldStyle(.roundedBorder)
+                    Button(app.router.isDownloading ? "…" : "Add") {
+                        Task { await downloadHF() }
+                    }
+                    .disabled(hfLink.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || app.router.isDownloading)
+                }
+                if let progress = app.router.downloadProgress {
+                    ProgressView(value: progress.ratio ?? 0, total: 1)
+                    Text(progress.message).font(.caption).foregroundStyle(CPTheme.muted)
+                }
+                if let err = app.router.lastDownloadError {
+                    Text(err).font(.caption).foregroundStyle(.red)
+                }
+            }
+        }
+
+        settingsCard {
+            VStack(alignment: .leading, spacing: 10) {
+                if app.router.routerModels.isEmpty {
+                    Text("No local models yet — paste a HF link above.")
+                        .foregroundStyle(CPTheme.muted)
+                } else {
+                    Picker("Model", selection: Binding(
+                        get: { selectedModelID ?? app.router.routerModels.first?.id ?? "" },
+                        set: { selectModel($0) }
+                    )) {
+                        ForEach(app.router.routerModels) { m in
+                            Text(m.loaded ? "\(m.id) · loaded" : m.id).tag(m.id)
+                        }
+                    }
+                }
+
+                if let draft = draftProfile {
+                    HStack {
+                        Text("Context")
+                        Spacer()
+                        Picker("", selection: Binding(
+                            get: { draft.ctxSize },
+                            set: { newValue in
+                                draftProfile?.ctxSize = newValue
+                                if newValue == LocalModelProfile.autoCtxSize {
+                                    Task { await probeAutoCtx() }
+                                }
+                            }
+                        )) {
+                            ForEach(LocalModelProfile.ctxSizes, id: \.self) { n in
+                                Text(LocalModelProfile.ctxLabel(n, fitted: draft.fittedCtxSize)).tag(n)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(minWidth: 140)
+                    }
+                    Toggle("Autocompaction", isOn: Binding(
+                        get: { draftProfile?.autoCompaction ?? true },
+                        set: { draftProfile?.autoCompaction = $0 }
+                    ))
+                    DisclosureGroup("Advanced", isExpanded: $showAdvancedModel) {
+                        modelKnobsEditor(draft: Binding(
+                            get: { draftProfile! },
+                            set: { draftProfile = $0 }
+                        ), compact: true)
+                    }
+                    .tint(CPTheme.muted)
+
+                    HStack {
+                        Button("Save & apply") { Task { await saveDraft(reload: true) } }
+                            .buttonStyle(.borderedProminent)
+                        Button("Load") {
+                            Task {
+                                guard let id = draftProfile?.id else { return }
+                                do {
+                                    try await app.router.loadModel(id)
+                                    app.rebuildAvailableModels()
+                                    modelStatus = "Loaded \(id)"
+                                } catch {
+                                    modelStatus = error.localizedDescription
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if let modelStatus {
+                    Text(modelStatus).font(.caption).foregroundStyle(CPTheme.muted)
+                }
+            }
+        }
+    }
+
+    // MARK: Cloud
+
+    @ViewBuilder
+    private var cloudTab: some View {
+        settingsCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Providers")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                if app.auth.providers.filter({ $0.name != "llama.cpp" }).isEmpty {
+                    Text("None yet — add one below.")
+                        .foregroundStyle(CPTheme.muted)
+                } else {
+                    ForEach(app.auth.providers.filter { $0.name != "llama.cpp" }) { p in
+                        HStack {
+                            Text(p.name)
+                            Text(p.type)
+                                .font(.caption)
+                                .foregroundStyle(CPTheme.muted)
+                            Spacer()
+                            Button("Logout") {
+                                Task { try? await app.auth.logout(provider: p.name) }
+                            }
+                        }
+                    }
+                }
+
+                Picker("Provider", selection: $selectedCloudProvider) {
+                    ForEach(CloudProviderOption.allCases) { p in
+                        Text(p.displayName).tag(p)
+                    }
+                }
+                .onChange(of: selectedCloudProvider) { _, next in
+                    cloudAPIKey = ""
+                    switch next.auth {
+                    case .apiKeyOnly:
+                        cloudAuthIsAPIKey = true
+                    case .oauthOnly:
+                        cloudAuthIsAPIKey = false
+                    case .oauthOrApiKey:
+                        break // keep current choice
+                    }
+                }
+
+                if selectedCloudProvider.supportsOAuth && selectedCloudProvider.supportsAPIKey {
+                    Picker("Sign-in", selection: $cloudAuthIsAPIKey) {
+                        Text("API key").tag(true)
+                        Text("Account (OAuth)").tag(false)
+                    }
+                    .pickerStyle(.segmented)
+                } else if selectedCloudProvider.supportsOAuth {
+                    Text("Uses account sign-in in Terminal.")
+                        .font(.caption)
+                        .foregroundStyle(CPTheme.muted)
+                } else {
+                    Text("API key only — stored in Keychain.")
+                        .font(.caption)
+                        .foregroundStyle(CPTheme.muted)
+                }
+
+                if cloudAuthIsAPIKey && selectedCloudProvider.supportsAPIKey {
+                    SecureField(selectedCloudProvider.apiKeyPlaceholder, text: $cloudAPIKey)
+                        .textFieldStyle(.roundedBorder)
+                    Button("Save API key") {
+                        Task { await saveCloudAPIKey() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(cloudAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } else if selectedCloudProvider.supportsOAuth {
+                    Button("Sign in with \(selectedCloudProvider.displayName)…") {
+                        Task { await startCloudOAuth() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                if let statusMessage {
+                    Text(statusMessage).font(.caption).foregroundStyle(CPTheme.muted)
+                }
+            }
+        }
+
+        settingsCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Usage")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(CPTheme.muted)
+                    Spacer()
+                    Button("Refresh") { Task { await app.refreshUsage() } }
+                        .disabled(app.usage.isRefreshingOpenRouter)
+                }
+                if let or = app.usage.openRouter, or.error == nil {
+                    Text("OpenRouter · \(or.remainingLabel)")
+                    Text(String(format: "Today $%.2f · Month $%.2f", or.usageDaily, or.usageMonthly))
+                        .font(.caption)
+                        .foregroundStyle(CPTheme.muted)
+                } else if app.auth.openRouterAPIKey == nil {
+                    Text("Import openrouter for live credits.")
+                        .font(.caption)
+                        .foregroundStyle(CPTheme.muted)
+                }
+                ForEach(app.usage.stats.prefix(6)) { row in
+                    HStack {
+                        Text(row.provider)
+                        Spacer()
+                        Text("\(row.messages) turns · ~\(row.estimatedTokens.formatted()) tok")
+                            .font(.caption)
+                            .foregroundStyle(CPTheme.muted)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: Devices
+
+    @ViewBuilder
+    private var devicesTab: some View {
+        settingsCard {
+            VStack(alignment: .leading, spacing: 12) {
                 Toggle("Allow remote devices", isOn: Binding(
                     get: { app.node.pairing.remoteEnabled },
                     set: { app.node.setEnabled($0) }
                 ))
-
                 HStack {
-                    TextField("Node name", text: $nodeNameDraft)
+                    TextField("This Mac’s name", text: $nodeNameDraft)
                         .textFieldStyle(.roundedBorder)
-                    Button("Save name") {
+                    Button("Save") {
                         app.node.pairing.setNodeName(nodeNameDraft)
-                        if app.node.isListening {
-                            app.node.start() // republish Bonjour name
-                        }
+                        if app.node.isListening { app.node.start() }
                     }
                 }
 
                 if app.node.isListening {
-                    Text("Listening on port \(app.node.pairing.port) · \(app.node.lanAddresses.joined(separator: ", ").nilIfEmpty ?? "localhost")")
+                    Text("Port \(app.node.pairing.port) · \(app.node.lanAddresses.joined(separator: ", ").nilIfEmpty ?? "localhost")")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let err = app.node.lastError {
-                        Text(err).font(.caption).foregroundStyle(.red)
-                    }
+                        .foregroundStyle(CPTheme.muted)
 
                     HStack(alignment: .top, spacing: 16) {
-                        VStack(spacing: 8) {
-                            QRCodeView(string: app.node.pairQRString(), size: 160)
-                            Text("Scan with the Coffee & Pi app")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
+                        QRCodeView(string: app.node.pairQRString(), size: 140)
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Pair code")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(CPTheme.muted)
                             Text(pairDisplayCode)
-                                .font(.system(size: 28, weight: .semibold, design: .rounded))
+                                .font(.system(size: 26, weight: .semibold, design: .rounded))
                                 .monospacedDigit()
                             Button("New code") {
-                                let c = app.node.refreshPairChallenge()
-                                pairCodeVisible = c.code
-                            }
-                            Text("Expires in ~2 minutes. Enter this code on the other device, or scan the QR.")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-
-                    if !app.node.pairing.pendingAuths.filter({ $0.status == .pending && $0.expiresAt >= Date() }).isEmpty {
-                        Divider()
-                        Text("Pending approvals").font(.headline)
-                        ForEach(app.node.pairing.pendingAuths.filter { $0.status == .pending && $0.expiresAt >= Date() }) { auth in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(auth.deviceName)
-                                    Text(auth.userCode)
-                                        .font(.caption.monospaced())
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Button("Deny") { app.node.pairing.denyDeviceAuth(id: auth.id) }
-                                Button("Allow") { _ = app.node.pairing.approveDeviceAuth(id: auth.id) }
-                                    .keyboardShortcut(.defaultAction)
+                                pairCodeVisible = app.node.refreshPairChallenge().code
                             }
                         }
                     }
 
-                    if !app.node.pairing.pairedDevices.isEmpty {
-                        Divider()
-                        Text("Paired").font(.headline)
-                        ForEach(app.node.pairing.pairedDevices) { device in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(device.name)
-                                    Text(device.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Button("Revoke", role: .destructive) {
-                                    app.node.pairing.revokeDevice(id: device.id)
-                                }
+                    ForEach(app.node.pairing.pendingAuths.filter { $0.status == .pending && $0.expiresAt >= Date() }) { auth in
+                        HStack {
+                            Text("\(auth.deviceName) · \(auth.userCode)")
+                            Spacer()
+                            Button("Deny") { app.node.pairing.denyDeviceAuth(id: auth.id) }
+                            Button("Allow") { _ = app.node.pairing.approveDeviceAuth(id: auth.id) }
+                        }
+                    }
+                    ForEach(app.node.pairing.pairedDevices) { device in
+                        HStack {
+                            Text(device.name)
+                            Spacer()
+                            Button("Revoke", role: .destructive) {
+                                app.node.pairing.revokeDevice(id: device.id)
                             }
                         }
                     }
-
-                    Text("Off-LAN (away from home Wi‑Fi) comes next — pairing still stays on your machines, no central login.")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
                 } else if app.node.pairing.remoteEnabled {
                     Text(app.node.lastError ?? "Starting…")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CPTheme.muted)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(6)
             .onAppear {
                 if app.node.pairing.remoteEnabled {
-                    let c = app.node.pairing.activeChallenge ?? app.node.refreshPairChallenge()
-                    pairCodeVisible = c.code
+                    pairCodeVisible = (app.node.pairing.activeChallenge ?? app.node.refreshPairChallenge()).code
                 }
             }
             .onChange(of: app.node.pairing.remoteEnabled) { _, on in
-                if on {
-                    let c = app.node.refreshPairChallenge()
-                    pairCodeVisible = c.code
+                if on { pairCodeVisible = app.node.refreshPairChallenge().code }
+            }
+        }
+    }
+
+    // MARK: More
+
+    @ViewBuilder
+    private var moreTab: some View {
+        if let bean = app.projects.activeBean {
+            settingsCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Bean · \(bean.name)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(CPTheme.muted)
+                    TextEditor(text: $botInstructionsDraft)
+                        .font(.system(size: 12, design: .monospaced))
+                        .frame(minHeight: 80, maxHeight: 140)
+                        .border(CPTheme.border)
+                    Button("Save prompt") {
+                        var updated = bean
+                        updated.instructions = botInstructionsDraft
+                        app.projects.updateBean(updated)
+                        statusMessage = "Saved"
+                    }
+                }
+                .onAppear { botInstructionsDraft = bean.instructions }
+                .onChange(of: bean.id) { _, _ in botInstructionsDraft = bean.instructions }
+            }
+        }
+
+        if let project = app.projects.activeProject {
+            settingsCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Project · \(project.name)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(CPTheme.muted)
+                    Text(project.path).font(.caption).foregroundStyle(CPTheme.muted)
+                    if project.hasGitHub {
+                        HStack {
+                            Text(project.githubRemote)
+                            Button("Open") { app.github.openRepo(project.githubRemote) }
+                            Button("Clear") { app.projects.setGitHub(projectID: project.id, remote: "") }
+                        }
+                    } else {
+                        HStack {
+                            TextField("owner/repo", text: $githubDraft)
+                                .textFieldStyle(.roundedBorder)
+                            Button("Connect") {
+                                app.projects.setGitHub(projectID: project.id, remote: githubDraft)
+                                githubDraft = ""
+                            }
+                            Button("Detect") {
+                                Task {
+                                    if let remote = await app.github.detectRemote(at: project.path) {
+                                        app.projects.setGitHub(projectID: project.id, remote: remote)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        settingsCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Archived")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                let archivedBeans = app.projects.archivedBeans()
+                let archivedChats = app.archivedChats()
+                if archivedBeans.isEmpty && archivedChats.isEmpty {
+                    Text("Nothing archived.")
+                        .foregroundStyle(CPTheme.muted)
+                } else {
+                    ForEach(archivedBeans) { bean in
+                        HStack {
+                            Text(bean.name)
+                            Spacer()
+                            Button("Restore") { app.unarchiveBean(bean.id) }
+                            Button("Delete", role: .destructive) { app.deleteBean(bean.id) }
+                        }
+                    }
+                    ForEach(archivedChats) { thread in
+                        HStack {
+                            Text(thread.title).lineLimit(1)
+                            Spacer()
+                            Button("Restore") { app.unarchiveThread(thread.id) }
+                            Button("Delete", role: .destructive) { app.deleteThread(thread.id) }
+                        }
+                    }
+                }
+            }
+        }
+
+        settingsCard {
+            Button("Replay onboarding…") { app.onboarding.replay() }
+        }
+    }
+
+    private func settingsCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(CPTheme.panel)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(CPTheme.border, lineWidth: 1)
+            )
     }
 
     private var pairDisplayCode: String {
@@ -1794,9 +1848,9 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    private func modelKnobsEditor(draft: Binding<LocalModelProfile>) -> some View {
+    private func modelKnobsEditor(draft: Binding<LocalModelProfile>, compact: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
+            if !compact {
                 HStack {
                     Text("Context length")
                     Spacer()
@@ -1816,13 +1870,10 @@ struct SettingsView: View {
                     .labelsHidden()
                     .frame(minWidth: 160)
                 }
-                Text(ctxHelpText(for: draft.wrappedValue))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
             }
 
             HStack {
-                Text("K cache quant")
+                Text("K cache")
                 Spacer()
                 Picker("", selection: Binding(
                     get: { draft.wrappedValue.cacheTypeK },
@@ -1833,11 +1884,11 @@ struct SettingsView: View {
                     }
                 }
                 .labelsHidden()
-                .frame(width: 120)
+                .frame(width: 100)
             }
 
             HStack {
-                Text("V cache quant")
+                Text("V cache")
                 Spacer()
                 Picker("", selection: Binding(
                     get: { draft.wrappedValue.cacheTypeV },
@@ -1848,15 +1899,17 @@ struct SettingsView: View {
                     }
                 }
                 .labelsHidden()
-                .frame(width: 120)
+                .frame(width: 100)
             }
 
-            Toggle("Autocompaction", isOn: Binding(
-                get: { draft.wrappedValue.autoCompaction },
-                set: { draft.wrappedValue.autoCompaction = $0 }
-            ))
+            if !compact {
+                Toggle("Autocompaction", isOn: Binding(
+                    get: { draft.wrappedValue.autoCompaction },
+                    set: { draft.wrappedValue.autoCompaction = $0 }
+                ))
+            }
 
-            Text("System prompt (per model)")
+            Text("System prompt")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             TextEditor(text: Binding(
@@ -1864,31 +1917,10 @@ struct SettingsView: View {
                 set: { draft.wrappedValue.systemPrompt = $0 }
             ))
             .font(.system(size: 12, design: .monospaced))
-            .frame(minHeight: 90, maxHeight: 160)
+            .frame(minHeight: 70, maxHeight: 120)
             .border(CPTheme.border)
-
-            HStack {
-                Button("Save & apply") {
-                    Task { await saveDraft(reload: true) }
-                }
-                .buttonStyle(.borderedProminent)
-                Button("Save only") {
-                    Task { await saveDraft(reload: false) }
-                }
-                Button("Load model") {
-                    Task {
-                        guard let id = draftProfile?.id else { return }
-                        do {
-                            try await app.router.loadModel(id)
-                            app.rebuildAvailableModels()
-                            modelStatus = "Loaded \(id)"
-                        } catch {
-                            modelStatus = error.localizedDescription
-                        }
-                    }
-                }
-            }
         }
+        .padding(.top, 6)
     }
 
     private func selectModel(_ id: String?) {
@@ -1948,6 +1980,31 @@ struct SettingsView: View {
             modelStatus = reload ? "Applied \(draft.id)" : "Saved \(draft.id)"
         } catch {
             modelStatus = error.localizedDescription
+        }
+    }
+
+    private func saveCloudAPIKey() async {
+        let key = cloudAPIKey
+        do {
+            try app.auth.saveAPIKey(key, for: selectedCloudProvider)
+            cloudAPIKey = ""
+            statusMessage = "Saved \(selectedCloudProvider.displayName) key in Keychain"
+            await app.refreshModelsFromPi()
+            await app.refreshUsage()
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func startCloudOAuth() async {
+        do {
+            try app.auth.loginWithOAuth(provider: selectedCloudProvider)
+            statusMessage = "Finish sign-in in Terminal, then tap Refresh under Usage."
+            // Give the user a moment; reload when they come back via Refresh.
+            app.auth.reload()
+            await app.refreshModelsFromPi()
+        } catch {
+            statusMessage = error.localizedDescription
         }
     }
 

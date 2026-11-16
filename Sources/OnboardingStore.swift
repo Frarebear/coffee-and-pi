@@ -37,9 +37,7 @@ final class OnboardingStore: ObservableObject {
         case openai
         case anthropic
         case openrouter
-        case xai
-        case githubCopilot
-        case openaiCodex
+        case grok
         case cursor
 
         var id: String { rawValue }
@@ -48,13 +46,11 @@ final class OnboardingStore: ObservableObject {
             switch self {
             case .local: return "Local (llama.cpp)"
             case .mlx: return "MLX (Apple Silicon)"
-            case .openai: return "OpenAI"
+            case .openai: return "OpenAI / ChatGPT"
             case .anthropic: return "Claude"
             case .openrouter: return "OpenRouter"
-            case .xai: return "Grok (xAI)"
-            case .githubCopilot: return "GitHub Copilot"
-            case .openaiCodex: return "ChatGPT / Codex"
-            case .cursor: return "Cursor Bean"
+            case .grok: return "Grok"
+            case .cursor: return "Cursor"
             }
         }
 
@@ -62,13 +58,11 @@ final class OnboardingStore: ObservableObject {
             switch self {
             case .local: return "Pi + model router on this Mac. Private, offline-capable."
             case .mlx: return "Native MLX models via mlx-lm server (Mac only)."
-            case .openai: return "API key for GPT models."
+            case .openai: return "API key or ChatGPT / Codex account — one card, both ways in."
             case .anthropic: return "Claude via API key or Anthropic account."
             case .openrouter: return "One key → many cloud models + live credits."
-            case .xai: return "Grok models via xAI API key."
-            case .githubCopilot: return "Sign in with GitHub Copilot."
-            case .openaiCodex: return "Sign in with ChatGPT for Codex."
-            case .cursor: return "Bean for Cursor-style work + transcript handoff (no API)."
+            case .grok: return "xAI Grok via API key."
+            case .cursor: return "Cursor-style Bean + transcript handoff from Cursor chats."
             }
         }
 
@@ -79,9 +73,7 @@ final class OnboardingStore: ObservableObject {
             case .openai: return "sparkles"
             case .anthropic: return "brain.head.profile"
             case .openrouter: return "globe"
-            case .xai: return "bolt.fill"
-            case .githubCopilot: return "chevron.left.forwardslash.chevron.right"
-            case .openaiCodex: return "bubble.left.and.bubble.right"
+            case .grok: return "bolt.fill"
             case .cursor: return "hammer"
             }
         }
@@ -91,27 +83,33 @@ final class OnboardingStore: ObservableObject {
             switch self {
             case .local: return "llama.cpp"
             case .mlx: return "mlx"
-            case .openai: return "openai"
+            case .openai: return "openai" // API-key path; ChatGPT uses openai-codex via connect UI
             case .anthropic: return "anthropic"
             case .openrouter: return "openrouter"
-            case .xai: return "xai"
-            case .githubCopilot: return "github-copilot"
-            case .openaiCodex: return "openai-codex"
+            case .grok: return "xai"
             case .cursor: return nil
+            }
+        }
+
+        /// Alternate Pi provider ids that also count as “connected” for this engine.
+        var alternatePiProviderIDs: [String] {
+            switch self {
+            case .openai: return ["openai-codex"]
+            default: return []
             }
         }
 
         var prefersOAuth: Bool {
             switch self {
-            case .githubCopilot, .openaiCodex, .anthropic: return true
+            case .openai, .anthropic: return true
             default: return false
             }
         }
 
         var acceptsAPIKey: Bool {
             switch self {
-            case .openai, .anthropic, .openrouter, .xai: return true
-            case .local, .mlx, .githubCopilot, .openaiCodex, .cursor: return false
+            case .openai, .anthropic, .openrouter, .grok: return true
+            case .local, .mlx, .cursor: return false
             }
         }
 

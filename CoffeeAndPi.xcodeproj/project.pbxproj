@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0B74E0C1606E985C0E5E0AE7 /* QRCodeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 089AA23F69D260E7DAEC3292 /* QRCodeImage.swift */; };
+		0EF5B2D424DA41F7B996299C /* CloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 377F7F2F5B0C4A24D8AF58DA /* CloudProvider.swift */; };
 		1A2AD4C0C873ED73337AE522 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAC8FE06531CEEA504899BA /* Models.swift */; };
 		23FA6AD405154C18856B1E4D /* HuggingFaceLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA97EA3AEBE53A5B35EE177D /* HuggingFaceLink.swift */; };
 		293019361C347787C2DE0BD3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C98D648F5E316A5FF7601CCD /* Assets.xcassets */; };
@@ -42,6 +43,7 @@
 		10CE41519837D637B07B5B5B /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
 		2B742EF4AFF9E5AF450B171E /* CoffeeAndPi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoffeeAndPi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		319D075249133D7C7C189073 /* NodeHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeHTTPServer.swift; sourceTree = "<group>"; };
+		377F7F2F5B0C4A24D8AF58DA /* CloudProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudProvider.swift; sourceTree = "<group>"; };
 		537589AF2C6E70464579BE5F /* NodeBonjour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeBonjour.swift; sourceTree = "<group>"; };
 		55339F59ACA879A1739D7A6B /* NodeWSHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeWSHub.swift; sourceTree = "<group>"; };
 		6359CA7F48BBC6CAD0D1BE62 /* PiRPCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiRPCClient.swift; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				C249CB2C778F8769187166A2 /* AuthStore.swift */,
 				F47169FB0A24A3571C05A187 /* BeanPresenceStore.swift */,
 				9660149A92022F3800D8EDDA /* ChatStore.swift */,
+				377F7F2F5B0C4A24D8AF58DA /* CloudProvider.swift */,
 				A2829F861529590913BEA262 /* CoffeeAndPiApp.swift */,
 				883868AA65DBEE7C1CF73D92 /* CoffeeShopView.swift */,
 				C060B50FBA1383907ABE75A0 /* ContentView.swift */,
@@ -203,6 +206,7 @@
 				565FD34D9EEACE4B87CA71CF /* AuthStore.swift in Sources */,
 				9A189C7E98DC33CA0C7EE93C /* BeanPresenceStore.swift in Sources */,
 				B51521C5EDDBAC7773F82194 /* ChatStore.swift in Sources */,
+				0EF5B2D424DA41F7B996299C /* CloudProvider.swift in Sources */,
 				8B0F4746267C6481D5B62BB1 /* CoffeeAndPiApp.swift in Sources */,
 				40EE7A417011650F71D86323 /* CoffeeShopView.swift in Sources */,
 				321238842A6F7304CC4A7763 /* ContentView.swift in Sources */,
