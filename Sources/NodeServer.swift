@@ -9,6 +9,8 @@ final class NodeServer: ObservableObject {
     @Published private(set) var isListening = false
     @Published private(set) var lastError: String?
     @Published private(set) var lanAddresses: [String] = []
+    /// Tailscale / CGNAT 100.x hosts when present.
+    @Published private(set) var offLANAddresses: [String] = []
 
     private var http: NodeHTTPServer?
     private let bonjour = NodeBonjour()
@@ -31,10 +33,39 @@ final class NodeServer: ObservableObject {
     }
 
     func bootstrap() {
-        lanAddresses = Self.localIPv4Addresses()
+        refreshAddresses()
         if pairing.remoteEnabled {
             start()
         }
+    }
+
+    func refreshAddresses() {
+        let all = Self.localIPv4Addresses()
+        offLANAddresses = all.filter(Self.isOffLANAddress)
+        // Prefer LAN first, then Tailscale, then custom public host in QR.
+        lanAddresses = all.filter { !Self.isOffLANAddress($0) } + offLANAddresses
+    }
+
+    /// Hosts advertised for pairing (LAN + Tailscale + optional public DNS).
+    var reachabilityHosts: [String] {
+        var hosts = lanAddresses
+        let pub = pairing.publicHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !pub.isEmpty, !hosts.contains(pub) {
+            hosts.insert(pub, at: 0)
+        }
+        return hosts
+    }
+
+    var mobileClientURL: String? {
+        guard let host = reachabilityHosts.first else { return nil }
+        return "http://\(host):\(pairing.port)/"
+    }
+
+    static func isOffLANAddress(_ ip: String) -> Bool {
+        // Tailscale CGNAT 100.64.0.0/10
+        let parts = ip.split(separator: ".").compactMap { Int($0) }
+        guard parts.count == 4 else { return false }
+        return parts[0] == 100 && parts[1] >= 64 && parts[1] <= 127
     }
 
     func setEnabled(_ on: Bool) {
@@ -48,7 +79,7 @@ final class NodeServer: ObservableObject {
 
     func start() {
         stop()
-        lanAddresses = Self.localIPv4Addresses()
+        refreshAddresses()
         let port = pairing.port
         let server = NodeHTTPServer(
             port: port,
@@ -106,11 +137,12 @@ final class NodeServer: ObservableObject {
     func currentPairPayload() -> PairPayload {
         pairing.clearExpiredChallenge()
         let challenge = pairing.activeChallenge ?? pairing.refreshPairChallenge()
+        let hosts = reachabilityHosts
         return PairPayload(
             v: 1,
             nodeID: pairing.nodeID.uuidString,
             name: pairing.nodeName,
-            hosts: lanAddresses.isEmpty ? ["127.0.0.1"] : lanAddresses,
+            hosts: hosts.isEmpty ? ["127.0.0.1"] : hosts,
             port: pairing.port,
             code: challenge.code
         )
@@ -130,13 +162,32 @@ final class NodeServer: ObservableObject {
         let path = req.path
         let method = req.method
 
+        // Thin mobile web client (no auth).
+        if method == "GET", path == "/" || path == "/app" || path == "/index.html" {
+            return .text(200, MobileWebClient.html, contentType: "text/html; charset=utf-8")
+        }
+        if method == "OPTIONS" {
+            return NodeHTTPServer.Response(
+                status: 204,
+                headers: [
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+                    "Connection": "close",
+                ],
+                body: Data()
+            )
+        }
+
         if method == "GET", path == "/v1/health" {
             return .json(200, [
                 "ok": true,
                 "nodeID": pairing.nodeID.uuidString,
                 "name": pairing.nodeName,
                 "port": pairing.port,
-                "hosts": lanAddresses,
+                "hosts": reachabilityHosts,
+                "offLAN": offLANAddresses,
+                "mobileURL": mobileClientURL as Any,
             ])
         }
 
@@ -162,8 +213,9 @@ final class NodeServer: ObservableObject {
                 "self": [
                     "id": pairing.nodeID.uuidString,
                     "name": pairing.nodeName,
-                    "hosts": lanAddresses,
+                    "hosts": reachabilityHosts,
                     "port": pairing.port,
+                    "offLAN": offLANAddresses,
                 ],
                 "peers": [] as [Any],
                 "device": ["id": device.id.uuidString, "name": device.name],
@@ -252,11 +304,11 @@ final class NodeServer: ObservableObject {
     private func handleOAuthDeviceStart(_ req: NodeHTTPServer.Request) -> NodeHTTPServer.Response {
         let name = (jsonObject(req.body)?["deviceName"] as? String) ?? "Device"
         let auth = pairing.startDeviceAuth(deviceName: name)
-        let host = lanAddresses.first ?? "127.0.0.1"
+        let host = reachabilityHosts.first ?? "127.0.0.1"
         return .json(200, [
             "device_code": auth.deviceCode,
             "user_code": auth.userCode,
-            "verification_uri": "http://\(host):\(pairing.port)/pair",
+            "verification_uri": "http://\(host):\(pairing.port)/",
             "expires_in": 120,
             "interval": 2,
         ])
@@ -434,6 +486,7 @@ final class NodeServer: ObservableObject {
     private func deviceJSON(_ d: PairingStore.PairedDevice) -> [String: Any] {
         [
             "access_token": d.token,
+            "token": d.token, // alias for thin clients
             "token_type": "Bearer",
             "device": [
                 "id": d.id.uuidString,

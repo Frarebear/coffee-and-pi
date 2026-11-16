@@ -44,20 +44,34 @@ final class RouterManager: ObservableObject {
     @Published private(set) var routerModels: [RouterModel] = []
     @Published private(set) var downloadProgress: DownloadProgress?
     @Published private(set) var lastDownloadError: String?
+    /// Concurrent local model slots (llama-router `LLAMA_MODELS_MAX`).
+    @Published private(set) var modelsMax: Int
 
     private var process: Process?
     private var downloadTask: Task<Void, Never>?
     private let host = "127.0.0.1"
     private let port = 9931
-    private let modelsMax: Int
     private let presetsPath = NSHomeDirectory() + "/models/presets.ini"
     private let modelsDir = NSHomeDirectory() + "/models"
+    private static let modelsMaxKey = "coffeeandpi.modelsMax"
 
     var baseURL: URL { URL(string: "http://\(host):\(port)")! }
     var isDownloading: Bool { downloadProgress != nil && downloadTask != nil }
+    var loadedCount: Int { routerModels.filter(\.loaded).count }
+    var slotsLabel: String { "\(loadedCount)/\(modelsMax) slots" }
 
     init(modelsMax: Int = 2) {
-        self.modelsMax = modelsMax
+        let stored = UserDefaults.standard.object(forKey: Self.modelsMaxKey) as? Int
+        self.modelsMax = max(1, min(stored ?? modelsMax, 8))
+    }
+
+    /// Persist slot capacity and restart router so LRU pool matches.
+    func setModelsMax(_ n: Int) async throws {
+        let clamped = max(1, min(n, 8))
+        guard clamped != modelsMax else { return }
+        modelsMax = clamped
+        UserDefaults.standard.set(clamped, forKey: Self.modelsMaxKey)
+        try await restartRouter()
     }
 
     func ensureRunning() async {

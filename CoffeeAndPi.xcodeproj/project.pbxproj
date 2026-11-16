@@ -15,6 +15,7 @@
 		321238842A6F7304CC4A7763 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C060B50FBA1383907ABE75A0 /* ContentView.swift */; };
 		3982BB266AD6BB8E03D298CF /* PairingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C817B2C8F4A2451BC2AC173E /* PairingStore.swift */; };
 		40EE7A417011650F71D86323 /* CoffeeShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883868AA65DBEE7C1CF73D92 /* CoffeeShopView.swift */; };
+		47923D17A7FBD2CAE9D07436 /* MobileWebClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4B8F9B687008208C8A51C9 /* MobileWebClient.swift */; };
 		5080CC7D37B58EDE2FD01FAA /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10CE41519837D637B07B5B5B /* OnboardingStore.swift */; };
 		51E60300C89F21833163A17B /* TableTurnCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF09642625859F949E36FF42 /* TableTurnCoordinator.swift */; };
 		565FD34D9EEACE4B87CA71CF /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C249CB2C778F8769187166A2 /* AuthStore.swift */; };
@@ -22,6 +23,7 @@
 		6D660550F1483586CC9D5C01 /* NodeServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02AC683EA808BAA2886EB70 /* NodeServer.swift */; };
 		8B0F4746267C6481D5B62BB1 /* CoffeeAndPiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2829F861529590913BEA262 /* CoffeeAndPiApp.swift */; };
 		9A189C7E98DC33CA0C7EE93C /* BeanPresenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47169FB0A24A3571C05A187 /* BeanPresenceStore.swift */; };
+		9EC6B0E46F8A6AE0A5868F4E /* SpeechDictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2372E0B20CB003BF998108AA /* SpeechDictation.swift */; };
 		A13184538296E724C5D6D312 /* GitHubStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16EA8D9ABF3A81A0B1E7B2E /* GitHubStore.swift */; };
 		A7498AFEBD0E70A0BD935D38 /* HardwareContextFitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DFF727E7293D9699F3BF117 /* HardwareContextFitter.swift */; };
 		AFAD64291216F6CEC2CFEA11 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3398E9B2F9B2B21971212B /* OnboardingView.swift */; };
@@ -41,6 +43,8 @@
 /* Begin PBXFileReference section */
 		089AA23F69D260E7DAEC3292 /* QRCodeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeImage.swift; sourceTree = "<group>"; };
 		10CE41519837D637B07B5B5B /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
+		2372E0B20CB003BF998108AA /* SpeechDictation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechDictation.swift; sourceTree = "<group>"; };
+		2A4B8F9B687008208C8A51C9 /* MobileWebClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebClient.swift; sourceTree = "<group>"; };
 		2B742EF4AFF9E5AF450B171E /* CoffeeAndPi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoffeeAndPi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		319D075249133D7C7C189073 /* NodeHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeHTTPServer.swift; sourceTree = "<group>"; };
 		377F7F2F5B0C4A24D8AF58DA /* CloudProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudProvider.swift; sourceTree = "<group>"; };
@@ -112,6 +116,7 @@
 				9DFF727E7293D9699F3BF117 /* HardwareContextFitter.swift */,
 				CA97EA3AEBE53A5B35EE177D /* HuggingFaceLink.swift */,
 				F001B202E76CF0C255C6C7EE /* LocalRuntimeInstaller.swift */,
+				2A4B8F9B687008208C8A51C9 /* MobileWebClient.swift */,
 				F8D8C0668FD04239D3B891C3 /* ModelProfileStore.swift */,
 				CAAC8FE06531CEEA504899BA /* Models.swift */,
 				537589AF2C6E70464579BE5F /* NodeBonjour.swift */,
@@ -125,6 +130,7 @@
 				D782BEC0120A6C74D1154728 /* ProjectStore.swift */,
 				089AA23F69D260E7DAEC3292 /* QRCodeImage.swift */,
 				97E82E3F950F95ABEC5B8B6A /* RouterManager.swift */,
+				2372E0B20CB003BF998108AA /* SpeechDictation.swift */,
 				EF09642625859F949E36FF42 /* TableTurnCoordinator.swift */,
 				75D80863CEEC8E591737331E /* Theme.swift */,
 				DDD57416B7852743BDF30077 /* UsageStore.swift */,
@@ -214,6 +220,7 @@
 				A7498AFEBD0E70A0BD935D38 /* HardwareContextFitter.swift in Sources */,
 				23FA6AD405154C18856B1E4D /* HuggingFaceLink.swift in Sources */,
 				E2D4891C361BA04F1B3FCD75 /* LocalRuntimeInstaller.swift in Sources */,
+				47923D17A7FBD2CAE9D07436 /* MobileWebClient.swift in Sources */,
 				ECA3923BC177C2A70CD2FAF6 /* ModelProfileStore.swift in Sources */,
 				1A2AD4C0C873ED73337AE522 /* Models.swift in Sources */,
 				D762DEA75CE7447334BDBAE8 /* NodeBonjour.swift in Sources */,
@@ -227,6 +234,7 @@
 				DEB181CD36951B3579CB3967 /* ProjectStore.swift in Sources */,
 				0B74E0C1606E985C0E5E0AE7 /* QRCodeImage.swift in Sources */,
 				62877BF035BF8D8B29E98B69 /* RouterManager.swift in Sources */,
+				9EC6B0E46F8A6AE0A5868F4E /* SpeechDictation.swift in Sources */,
 				51E60300C89F21833163A17B /* TableTurnCoordinator.swift in Sources */,
 				B7DF7221B554F73D3EF94649 /* Theme.swift in Sources */,
 				F7BC5BF868EA75BC64259C4A /* UsageStore.swift in Sources */,
@@ -315,6 +323,8 @@
 				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Coffee & Pi finds and serves your other devices on the local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Coffee & Pi uses the mic for composer dictation.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Coffee & Pi turns speech into composer text.";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.caleb.CoffeeAndPi;
 				PRODUCT_NAME = "Coffee & Pi";
@@ -394,6 +404,8 @@
 				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Coffee & Pi finds and serves your other devices on the local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Coffee & Pi uses the mic for composer dictation.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Coffee & Pi turns speech into composer text.";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.caleb.CoffeeAndPi;
 				PRODUCT_NAME = "Coffee & Pi";

@@ -325,7 +325,7 @@ struct OnboardingView: View {
 
             if engine == .openai {
                 Picker("Method", selection: $useOAuth) {
-                    Text("ChatGPT / Codex").tag(true)
+                    Text("ChatGPT account").tag(true)
                     Text("API key").tag(false)
                 }
                 .pickerStyle(.segmented)
@@ -347,7 +347,7 @@ struct OnboardingView: View {
 
             if engine.prefersOAuth && (useOAuth || !engine.acceptsAPIKey) {
                 Text(engine == .openai
-                      ? "Opens Terminal for ChatGPT / Codex sign-in (`pi auth login openai-codex`)."
+                      ? "Opens Terminal for ChatGPT sign-in (`pi auth login openai`). Pi stores that under the openai provider."
                       : "Opens Terminal for `pi auth login` — finish sign-in there, then hit Continue.")
                     .font(.caption)
                     .foregroundStyle(CPTheme.muted)
@@ -373,8 +373,8 @@ struct OnboardingView: View {
     }
 
     private func oauthProviderID(for engine: OnboardingStore.Engine) -> String? {
-        if engine == .openai { return "openai-codex" }
-        return engine.piProviderID
+        // ChatGPT subscription OAuth is `openai` in current Pi (see openaiProvider oauth label).
+        engine.piProviderID
     }
 
     private var tourBeanStep: some View {
@@ -433,7 +433,7 @@ struct OnboardingView: View {
                 app.openShop(projectID: nil)
             }
 
-            tip("Phone connect is not in this pass — you’ll pair devices from Settings later.")
+            tip("Phone: Settings → Devices → enable remotes, open the phone UI URL, enter the pair code.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -36,6 +36,8 @@ final class PairingStore: ObservableObject {
     @Published var nodeName: String
     @Published var remoteEnabled: Bool
     @Published var port: UInt16
+    /// Optional public host for off-LAN (Tailscale MagicDNS / tunnel hostname).
+    @Published var publicHost: String
     @Published var pairedDevices: [PairedDevice] = []
     @Published var pendingAuths: [PendingDeviceAuth] = []
     @Published private(set) var activeChallenge: PairChallenge?
@@ -54,6 +56,7 @@ final class PairingStore: ObservableObject {
         var nodeName: String
         var remoteEnabled: Bool
         var port: UInt16
+        var publicHost: String?
         var pairedDevices: [PairedDevice]
     }
 
@@ -62,6 +65,7 @@ final class PairingStore: ObservableObject {
         nodeName = Host.current().localizedName ?? "Coffee & Pi"
         remoteEnabled = false
         port = defaultPort
+        publicHost = ""
         load()
     }
 
@@ -74,6 +78,7 @@ final class PairingStore: ObservableObject {
         nodeName = disk.nodeName
         remoteEnabled = disk.remoteEnabled
         port = disk.port == 0 ? defaultPort : disk.port
+        publicHost = disk.publicHost ?? ""
         pairedDevices = disk.pairedDevices
     }
 
@@ -83,6 +88,7 @@ final class PairingStore: ObservableObject {
             nodeName: nodeName,
             remoteEnabled: remoteEnabled,
             port: port,
+            publicHost: publicHost.isEmpty ? nil : publicHost,
             pairedDevices: pairedDevices
         )
         let encoder = JSONEncoder()
@@ -101,6 +107,11 @@ final class PairingStore: ObservableObject {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         nodeName = trimmed
+        save()
+    }
+
+    func setPublicHost(_ host: String) {
+        publicHost = host.trimmingCharacters(in: .whitespacesAndNewlines)
         save()
     }
 

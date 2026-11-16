@@ -19,6 +19,9 @@ final class AppModel: ObservableObject {
     @Published var expandProjects = true
     @Published var expandLooseBeans = true
     @Published var expandLooseChats = true
+    @Published var sidebarQuery = ""
+    /// Shown briefly after `Scripts/rebuild-and-relaunch.sh` (self-edit closed loop).
+    @Published var rebuildNotice: String?
 
     let router = RouterManager(modelsMax: 2)
     let auth = AuthStore()
@@ -55,11 +58,38 @@ final class AppModel: ObservableObject {
         nestedBags.append(onboarding.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         })
+        nestedBags.append(router.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        })
         node.attach(app: self)
         usage.load()
         onboarding.onDismiss = { [weak self] in
             Task { @MainActor in
                 await self?.finishBootstrapAfterOnboarding()
+            }
+        }
+    }
+
+    /// Stamp file written by `Scripts/rebuild-and-relaunch.sh` before relaunch.
+    static var rebuildStampURL: URL {
+        let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("CoffeeAndPi", isDirectory: true)
+        try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        return root.appendingPathComponent("last-rebuild")
+    }
+
+    func consumeRebuildStampIfRecent() {
+        let url = Self.rebuildStampURL
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let date = attrs[.modificationDate] as? Date,
+              Date().timeIntervalSince(date) < 90
+        else { return }
+        rebuildNotice = "Fresh build · self-edit relaunch OK"
+        try? FileManager.default.removeItem(at: url)
+        Task {
+            try? await Task.sleep(nanoseconds: 6_000_000_000)
+            if rebuildNotice?.hasPrefix("Fresh build") == true {
+                rebuildNotice = nil
             }
         }
     }
@@ -169,6 +199,7 @@ final class AppModel: ObservableObject {
             activeThreadID = nextVisibleThreadID()
         }
         auth.reload()
+        consumeRebuildStampIfRecent()
 
         // First-launch wizard only for empty installs. Existing workspaces are never wiped.
         let hasWorkspaceContent = !projects.projects.isEmpty
@@ -371,7 +402,86 @@ final class AppModel: ObservableObject {
         for m in availableModels where m.provider != "llama.cpp" {
             map[m.id] = m
         }
+        // Seed from Pi models.json + auth so picker works right after import.
+        for m in Self.cloudModelsFromDisk(authProviders: auth.providers.map(\.name)) {
+            if map[m.id] == nil { map[m.id] = m }
+        }
         availableModels = Array(map.values).sorted { $0.menuLabel < $1.menuLabel }
+    }
+
+    /// After cloud OAuth / API key — merge live Pi catalog into the picker.
+    func refreshCloudCatalog() async {
+        auth.reload()
+        rebuildAvailableModels()
+        if let thread = activeThread {
+            let key = primaryKey(for: thread)
+            if clients[key] != nil {
+                await refreshModelsFromPi()
+                return
+            }
+        }
+        // Ephemeral probe so import works before any chat is open.
+        let probe = PiRPCClient()
+        do {
+            try await probe.start(
+                cwd: NSHomeDirectory(),
+                provider: "llama.cpp",
+                model: router.routerModels.first?.id ?? "gemma4-heretic",
+                thinking: .off,
+                appendSystemPrompt: nil,
+                sessionDir: chatStore.sessionsDirectory.path,
+                sessionID: "cloud-catalog-probe"
+            )
+            if let models = try? await probe.getAvailableModels() {
+                for m in models where m.provider != "llama.cpp" {
+                    if !availableModels.contains(where: { $0.id == m.id }) {
+                        availableModels.append(m)
+                    }
+                }
+            }
+            await probe.stop()
+        } catch {
+            await probe.stop()
+        }
+        rebuildAvailableModels()
+    }
+
+    /// Cloud models listed in `~/.pi/agent/models.json` for authenticated providers.
+    private static func cloudModelsFromDisk(authProviders: [String]) -> [PiModel] {
+        let authSet = Set(authProviders.map { $0.lowercased() })
+        guard !authSet.isEmpty else { return [] }
+        let url = URL(fileURLWithPath: NSHomeDirectory() + "/.pi/agent/models.json")
+        guard let data = try? Data(contentsOf: url),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let providers = root["providers"] as? [String: Any]
+        else { return [] }
+        var out: [PiModel] = []
+        for (provider, raw) in providers {
+            guard provider != "llama.cpp" else { continue }
+            let matched = authSet.contains(provider.lowercased())
+                || (provider == "openai" && authSet.contains("openai-codex"))
+                || (provider == "openai-codex" && authSet.contains("openai"))
+            guard matched else { continue }
+            let entry = raw as? [String: Any] ?? [:]
+            let rows = entry["models"] as? [[String: Any]] ?? []
+            for row in rows {
+                guard let id = row["id"] as? String, !id.isEmpty else { continue }
+                out.append(PiModel(
+                    provider: provider,
+                    modelId: id,
+                    name: row["name"] as? String ?? id,
+                    reasoning: row["reasoning"] as? Bool,
+                    loaded: nil
+                ))
+            }
+        }
+        return out
+    }
+
+    func matchesSidebarQuery(_ text: String) -> Bool {
+        let q = sidebarQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return true }
+        return text.localizedCaseInsensitiveContains(q)
     }
 
     /// New chat in the current context (active bean/project), or loose if none.
@@ -1418,6 +1528,7 @@ Self-edit rules for this project:
 - Working directory is \(project.path)
 - You may edit any file in this project, including the Coffee & Pi SwiftUI app under Sources/
 - After UI/code changes, rebuild+relaunch with: Scripts/rebuild-and-relaunch.sh
+- That script rebuilds, writes a stamp, kills the running app, and opens the new build — chats persist across relaunch. Don't ask the user to quit/reopen.
 - Prefer small, working diffs. Don't ask permission for edits in this repo.
 """
         }

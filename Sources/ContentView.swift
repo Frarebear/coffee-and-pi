@@ -44,6 +44,11 @@ struct SidebarView: View {
     @State private var beanLookHue: Double = Double.random(in: 0.05...0.12)
     @State private var newBeanProjectID: UUID? = nil
     @State private var showNewBeanSheet = false
+    @FocusState private var searchFocused: Bool
+
+    private var queryActive: Bool {
+        !app.sidebarQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -78,42 +83,84 @@ struct SidebarView: View {
             .padding(.top, 12)
             .padding(.bottom, 8)
 
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                TextField("Search beans & chats", text: $app.sidebarQuery)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+                    .foregroundStyle(CPTheme.text)
+                    .focused($searchFocused)
+                if queryActive {
+                    Button {
+                        app.sidebarQuery = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(CPTheme.muted)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(CPTheme.composer)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .padding(.horizontal, 14)
+            .padding(.bottom, 8)
+
+            RouterBadge(status: app.router.status)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 6)
+
+            Text(app.router.slotsLabel)
+                .font(.system(size: 10, weight: .medium, design: .rounded))
+                .foregroundStyle(CPTheme.muted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 6)
+
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 10) {
-                    sectionHeader("Projects", expanded: app.expandProjects) {
-                        app.expandProjects.toggle()
-                    } add: {
-                        addProject()
-                    }
-                    if app.expandProjects {
-                        ForEach(app.projects.projects) { project in
-                            ProjectRow(project: project) {
-                                promptNewBean(projectID: project.id)
+                    if queryActive {
+                        searchResults
+                    } else {
+                        sectionHeader("Projects", expanded: app.expandProjects) {
+                            app.expandProjects.toggle()
+                        } add: {
+                            addProject()
+                        }
+                        if app.expandProjects {
+                            ForEach(app.projects.projects) { project in
+                                ProjectRow(project: project) {
+                                    promptNewBean(projectID: project.id)
+                                }
                             }
                         }
-                    }
 
-                    sectionHeader("Beans", expanded: app.expandLooseBeans) {
-                        app.expandLooseBeans.toggle()
-                    } add: {
-                        promptNewBean(projectID: nil)
-                    }
-                    if app.expandLooseBeans {
-                        ForEach(app.projects.looseBeans()) { bean in
-                            BeanRow(bean: bean, indent: 14)
+                        sectionHeader("Beans", expanded: app.expandLooseBeans) {
+                            app.expandLooseBeans.toggle()
+                        } add: {
+                            promptNewBean(projectID: nil)
                         }
-                    }
+                        if app.expandLooseBeans {
+                            ForEach(app.projects.looseBeans()) { bean in
+                                BeanRow(bean: bean, indent: 14)
+                            }
+                        }
 
-                    sectionHeader("Chats", expanded: app.expandLooseChats) {
-                        app.expandLooseChats.toggle()
-                    } add: {
-                        app.projects.selectProject(nil)
-                        app.projects.selectBean(nil)
-                        Task { await app.newChat(projectID: nil, beanID: nil) }
-                    }
-                    if app.expandLooseChats {
-                        ForEach(app.orphanChats()) { thread in
-                            ChatRow(thread: thread, leading: 14)
+                        sectionHeader("Chats", expanded: app.expandLooseChats) {
+                            app.expandLooseChats.toggle()
+                        } add: {
+                            app.projects.selectProject(nil)
+                            app.projects.selectBean(nil)
+                            Task { await app.newChat(projectID: nil, beanID: nil) }
+                        }
+                        if app.expandLooseChats {
+                            ForEach(app.orphanChats()) { thread in
+                                ChatRow(thread: thread, leading: 14)
+                            }
                         }
                     }
                 }
@@ -189,6 +236,66 @@ struct SidebarView: View {
                     }
                 }
             )
+        }
+    }
+
+    @ViewBuilder
+    private var searchResults: some View {
+        let beans = app.projects.beans.filter {
+            !$0.isArchived && app.matchesSidebarQuery($0.name)
+        }
+        let chats = app.threads.filter {
+            !$0.isArchived && (
+                app.matchesSidebarQuery($0.title)
+                    || app.matchesSidebarQuery($0.preview)
+                    || app.chatBeanLabel($0).map { app.matchesSidebarQuery($0) } == true
+            )
+        }
+        let projects = app.projects.projects.filter {
+            app.matchesSidebarQuery($0.name) || app.matchesSidebarQuery($0.path)
+        }
+
+        if projects.isEmpty && beans.isEmpty && chats.isEmpty {
+            Text("No matches")
+                .font(.system(size: 12))
+                .foregroundStyle(CPTheme.muted)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+        } else {
+            if !projects.isEmpty {
+                Text("Projects")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 14)
+                ForEach(projects) { project in
+                    ProjectRow(project: project) {
+                        promptNewBean(projectID: project.id)
+                    }
+                }
+            }
+            if !beans.isEmpty {
+                Text("Beans")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 6)
+                ForEach(beans) { bean in
+                    BeanRow(bean: bean, indent: 14)
+                }
+            }
+            if !chats.isEmpty {
+                Text("Chats")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(CPTheme.muted)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 6)
+                ForEach(chats) { thread in
+                    ChatRow(thread: thread, leading: 14)
+                }
+            }
         }
     }
 
@@ -792,6 +899,36 @@ struct ChatView: View {
                         .padding(.horizontal, 28)
                         .padding(.top, 16)
                         .padding(.bottom, 4)
+                } else {
+                    SoloChatHeader(thread: thread)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 14)
+                        .padding(.bottom, 6)
+                }
+
+                if let notice = app.rebuildNotice {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundStyle(CPTheme.accent)
+                        Text(notice)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(CPTheme.text)
+                        Spacer()
+                        Button {
+                            app.rebuildNotice = nil
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(CPTheme.muted)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(CPTheme.composer)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 6)
                 }
 
                 ScrollViewReader { proxy in
@@ -836,6 +973,48 @@ struct ChatView: View {
             }
         }
         .background(CPTheme.bg)
+    }
+}
+
+struct SoloChatHeader: View {
+    @EnvironmentObject private var app: AppModel
+    let thread: ChatThread
+
+    var body: some View {
+        HStack(spacing: 10) {
+            if let bean = app.projects.bean(id: thread.beanID) {
+                BeanMark(hue: bean.accentHue)
+                    .frame(width: 18, height: 24)
+            } else {
+                ChatMark(busy: thread.isBusy)
+                    .frame(width: 18, height: 24)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(thread.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(CPTheme.text)
+                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    if let label = app.chatBeanLabel(thread) {
+                        Text(label)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(CPTheme.muted)
+                    }
+                    if let model = thread.selectedModel {
+                        Text("·")
+                            .foregroundStyle(CPTheme.muted.opacity(0.5))
+                        Text(model.displayName)
+                            .font(.system(size: 11))
+                            .foregroundStyle(CPTheme.muted)
+                            .lineLimit(1)
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+            Text(RelativeTime.format(thread.updatedAt))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(CPTheme.muted)
+        }
     }
 }
 
@@ -1083,6 +1262,7 @@ private struct ChatErrorBanner: View {
 struct ComposerView: View {
     @EnvironmentObject private var app: AppModel
     @FocusState private var focused: Bool
+    @StateObject private var dictation = SpeechDictation()
 
     private var slashMatches: [SlashCommand] {
         app.filteredSlashCommands(for: app.draft)
@@ -1148,6 +1328,20 @@ struct ComposerView: View {
                         Task { await app.send() }
                     }
 
+                Button {
+                    dictation.toggle(base: app.draft) { text in
+                        app.draft = text
+                    }
+                } label: {
+                    Image(systemName: dictation.isListening ? "mic.fill" : "mic")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(dictation.isListening ? Color.red.opacity(0.9) : CPTheme.muted)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+                .help(dictation.isListening ? "Stop dictation" : "Dictate")
+                .padding(.top, 2)
+
                 if app.activeThread?.isBusy == true {
                     Button {
                         Task { await app.abort() }
@@ -1172,19 +1366,48 @@ struct ComposerView: View {
                 }
             }
 
+            if let err = dictation.lastError {
+                Text(err)
+                    .font(.caption)
+                    .foregroundStyle(Color.red.opacity(0.85))
+            }
+
             HStack(spacing: 14) {
                 Menu {
+                    Text(app.router.slotsLabel)
                     if app.availableModels.isEmpty {
                         Text("No models — check router / subscriptions")
                     }
-                    ForEach(app.availableModels) { model in
-                        Button {
-                            Task { await app.setModel(model) }
-                        } label: {
-                            HStack {
-                                Text(model.menuLabel)
-                                if app.activeThread?.selectedModel?.id == model.id {
-                                    Image(systemName: "checkmark")
+                    let local = app.availableModels.filter { $0.provider == "llama.cpp" }
+                    let cloud = app.availableModels.filter { $0.provider != "llama.cpp" }
+                    if !local.isEmpty {
+                        Section("Local · \(app.router.slotsLabel)") {
+                            ForEach(local) { model in
+                                Button {
+                                    Task { await app.setModel(model) }
+                                } label: {
+                                    HStack {
+                                        Text(model.menuLabel)
+                                        if app.activeThread?.selectedModel?.id == model.id {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if !cloud.isEmpty {
+                        Section("Cloud") {
+                            ForEach(cloud) { model in
+                                Button {
+                                    Task { await app.setModel(model) }
+                                } label: {
+                                    HStack {
+                                        Text(model.menuLabel)
+                                        if app.activeThread?.selectedModel?.id == model.id {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1193,8 +1416,7 @@ struct ComposerView: View {
                     Button("Refresh models") {
                         Task {
                             await app.router.refresh()
-                            app.rebuildAvailableModels()
-                            await app.refreshModelsFromPi()
+                            await app.refreshCloudCatalog()
                         }
                     }
                 } label: {
@@ -1350,8 +1572,10 @@ struct SettingsView: View {
     @State private var modelStatus: String?
     @State private var botInstructionsDraft = ""
     @State private var nodeNameDraft = ""
+    @State private var publicHostDraft = ""
     @State private var pairCodeVisible = ""
     @State private var showAdvancedModel = false
+    @State private var modelsMaxDraft = 2
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -1401,6 +1625,8 @@ struct SettingsView: View {
             app.auth.reload()
             app.syncProfilesFromRouter()
             nodeNameDraft = app.node.pairing.nodeName
+            publicHostDraft = app.node.pairing.publicHost
+            modelsMaxDraft = app.router.modelsMax
             if selectedModelID == nil {
                 selectModel(app.router.routerModels.first?.id)
             }
@@ -1410,6 +1636,7 @@ struct SettingsView: View {
             Task {
                 await app.github.refreshAuth()
                 await app.refreshUsage()
+                await app.refreshCloudCatalog()
             }
         }
     }
@@ -1424,6 +1651,9 @@ struct SettingsView: View {
                     Text(routerLabel)
                         .foregroundStyle(CPTheme.text)
                     Text(app.hardware.label)
+                        .font(.caption)
+                        .foregroundStyle(CPTheme.muted)
+                    Text(app.router.slotsLabel + " loaded")
                         .font(.caption)
                         .foregroundStyle(CPTheme.muted)
                 }
@@ -1447,6 +1677,31 @@ struct SettingsView: View {
                     }
                 }
             }
+            HStack {
+                Text("Concurrent slots")
+                Spacer()
+                Picker("", selection: $modelsMaxDraft) {
+                    ForEach([1, 2, 3, 4, 6, 8], id: \.self) { n in
+                        Text("\(n)").tag(n)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 70)
+                Button("Apply") {
+                    Task {
+                        do {
+                            try await app.router.setModelsMax(modelsMaxDraft)
+                            modelStatus = "Slots → \(app.router.modelsMax)"
+                        } catch {
+                            modelStatus = error.localizedDescription
+                        }
+                    }
+                }
+                .disabled(modelsMaxDraft == app.router.modelsMax)
+            }
+            Text("When several small models fit, raise slots so they stay loaded together.")
+                .font(.caption)
+                .foregroundStyle(CPTheme.muted)
         }
 
         settingsCard {
@@ -1620,6 +1875,17 @@ struct SettingsView: View {
                     .buttonStyle(.borderedProminent)
                 }
 
+                HStack {
+                    Button("Refresh catalog") {
+                        Task {
+                            await app.refreshCloudCatalog()
+                            let n = app.availableModels.filter { $0.provider != "llama.cpp" }.count
+                            statusMessage = "\(n) cloud model(s) in picker"
+                        }
+                    }
+                    Spacer()
+                }
+
                 if let statusMessage {
                     Text(statusMessage).font(.caption).foregroundStyle(CPTheme.muted)
                 }
@@ -1679,9 +1945,50 @@ struct SettingsView: View {
                 }
 
                 if app.node.isListening {
-                    Text("Port \(app.node.pairing.port) · \(app.node.lanAddresses.joined(separator: ", ").nilIfEmpty ?? "localhost")")
+                    Text("Port \(app.node.pairing.port) · \(app.node.reachabilityHosts.joined(separator: ", ").nilIfEmpty ?? "localhost")")
                         .font(.caption)
                         .foregroundStyle(CPTheme.muted)
+
+                    if let url = app.node.mobileClientURL {
+                        HStack {
+                            Text("Phone UI")
+                                .font(.caption)
+                                .foregroundStyle(CPTheme.muted)
+                            Text(url)
+                                .font(.caption)
+                                .foregroundStyle(CPTheme.text)
+                                .textSelection(.enabled)
+                            Spacer()
+                            Button("Copy") {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(url, forType: .string)
+                            }
+                            Button("Open") {
+                                if let u = URL(string: url) { NSWorkspace.shared.open(u) }
+                            }
+                        }
+                    }
+
+                    if !app.node.offLANAddresses.isEmpty {
+                        Text("Off-LAN (Tailscale) · \(app.node.offLANAddresses.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundStyle(CPTheme.accent)
+                    } else {
+                        Text("Off-LAN: join this Mac to Tailscale (or set a tunnel host below). No Coffee & Pi account.")
+                            .font(.caption)
+                            .foregroundStyle(CPTheme.muted)
+                    }
+
+                    HStack {
+                        TextField("Public host (optional)", text: $publicHostDraft)
+                            .textFieldStyle(.roundedBorder)
+                            .help("Tailscale MagicDNS or Cloudflare Tunnel hostname")
+                        Button("Save") {
+                            app.node.pairing.setPublicHost(publicHostDraft)
+                            app.node.refreshAddresses()
+                            if app.node.isListening { app.node.start() }
+                        }
+                    }
 
                     HStack(alignment: .top, spacing: 16) {
                         QRCodeView(string: app.node.pairQRString(), size: 140)
@@ -1695,6 +2002,10 @@ struct SettingsView: View {
                             Button("New code") {
                                 pairCodeVisible = app.node.refreshPairChallenge().code
                             }
+                            Text("Scan QR or open the phone UI URL and enter this code.")
+                                .font(.caption)
+                                .foregroundStyle(CPTheme.muted)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
 
@@ -1988,8 +2299,10 @@ struct SettingsView: View {
         do {
             try app.auth.saveAPIKey(key, for: selectedCloudProvider)
             cloudAPIKey = ""
-            statusMessage = "Saved \(selectedCloudProvider.displayName) key in Keychain"
-            await app.refreshModelsFromPi()
+            statusMessage = "Saved \(selectedCloudProvider.displayName) key — refreshing catalog…"
+            await app.refreshCloudCatalog()
+            let cloudCount = app.availableModels.filter { $0.provider != "llama.cpp" }.count
+            statusMessage = "Saved \(selectedCloudProvider.displayName) · \(cloudCount) cloud model(s) in picker"
             await app.refreshUsage()
         } catch {
             statusMessage = error.localizedDescription
@@ -1999,10 +2312,13 @@ struct SettingsView: View {
     private func startCloudOAuth() async {
         do {
             try app.auth.loginWithOAuth(provider: selectedCloudProvider)
-            statusMessage = "Finish sign-in in Terminal, then tap Refresh under Usage."
-            // Give the user a moment; reload when they come back via Refresh.
+            statusMessage = "Finish sign-in in Terminal, then come back — catalog refreshes on return."
             app.auth.reload()
-            await app.refreshModelsFromPi()
+            await app.refreshCloudCatalog()
+            let cloudCount = app.availableModels.filter { $0.provider != "llama.cpp" }.count
+            if cloudCount > 0 {
+                statusMessage = "\(selectedCloudProvider.displayName) · \(cloudCount) cloud model(s) in picker"
+            }
         } catch {
             statusMessage = error.localizedDescription
         }

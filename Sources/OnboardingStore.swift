@@ -58,7 +58,7 @@ final class OnboardingStore: ObservableObject {
             switch self {
             case .local: return "Pi + model router on this Mac. Private, offline-capable."
             case .mlx: return "Native MLX models via mlx-lm server (Mac only)."
-            case .openai: return "API key or ChatGPT / Codex account — one card, both ways in."
+            case .openai: return "ChatGPT subscription (OAuth) or an OpenAI API key."
             case .anthropic: return "Claude via API key or Anthropic account."
             case .openrouter: return "One key → many cloud models + live credits."
             case .grok: return "xAI Grok via API key."
@@ -83,7 +83,8 @@ final class OnboardingStore: ObservableObject {
             switch self {
             case .local: return "llama.cpp"
             case .mlx: return "mlx"
-            case .openai: return "openai" // API-key path; ChatGPT uses openai-codex via connect UI
+            // Pi stores ChatGPT subscription OAuth under `openai` (not `openai-codex`).
+            case .openai: return "openai"
             case .anthropic: return "anthropic"
             case .openrouter: return "openrouter"
             case .grok: return "xai"
@@ -94,6 +95,7 @@ final class OnboardingStore: ObservableObject {
         /// Alternate Pi provider ids that also count as “connected” for this engine.
         var alternatePiProviderIDs: [String] {
             switch self {
+            // Legacy / Codex-protocol login still counts if present.
             case .openai: return ["openai-codex"]
             default: return []
             }

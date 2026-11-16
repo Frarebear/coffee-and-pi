@@ -96,8 +96,8 @@ Each Mac is its own server. No Coffee & Pi accounts — pair with QR or device-c
 - [x] WebSocket push of chat/stream state to subscribed devices (`subscribe` → `{type:chat}`)
 - [x] Settings → Devices (enable, name, QR, code, pending approve, revoke)
 - [x] Bonjour advertise `_coffeeandpi._tcp`
-- [ ] Off-LAN reachability (away from home Wi‑Fi) without central login — next pass
-- [ ] Mobile client app
+- [x] Off-LAN reachability via Tailscale CGNAT (`100.64/10`) + optional public host (MagicDNS / tunnel) — no central login
+- [x] Mobile client — thin web UI served at `http://<mac>:9932/` (pair → chats → WS stream)
 
 ### Mobile client contract (all work on the computer)
 
@@ -111,11 +111,12 @@ Phone / peer Mac must **not** run Pi or load models. Only:
 
 Persistence: `~/Library/Application Support/CoffeeAndPi/node.json`
 
-## Still open
+## Polish (shipped)
 
-- [ ] Self-edit → live UI closed loop (rebuild works; not proven end-to-end in-app)
-- [ ] Sidebar search + richer chrome
-- [ ] Composer mic
-- [ ] Multi-slot capacity UX when several small models fit
-- [ ] Cloud catalog after import fully verified in picker
-- [ ] Off-LAN node reachability (see Remote devices)
+- [x] Self-edit → live UI closed loop (`Scripts/rebuild-and-relaunch.sh` stamps + app banner on relaunch; chats persist)
+- [x] Sidebar search + richer chrome (search field, router/slots, solo chat header)
+- [x] Composer mic (Speech framework dictation)
+- [x] Multi-slot capacity UX when several small models fit (slots label + Settings picker 1–8)
+- [x] Cloud catalog after import fully verified in picker (`refreshCloudCatalog` + disk seed + live probe)
+- [x] Off-LAN node reachability (see Remote devices)
+- [x] Mobile thin client (see Remote devices)

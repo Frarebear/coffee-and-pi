@@ -21,7 +21,7 @@ macOS SwiftUI app: **Pi chat** with a Grok Bot–clean UI, backed by a local **l
 - Import provider subs via Pi’s existing `pi auth login`
 - Local-only works with no cloud subs imported
 - **Self-edit**: bots can edit this repo and run `Scripts/rebuild-and-relaunch.sh`
-- **Remote devices**: Settings → Devices enables a LAN node API (`http://<mac>:9932`) — QR / device-code pairing, no central account. See `FEATURES.md`.
+- **Remote devices**: Settings → Devices enables a node API (`http://<mac>:9932`) — QR / code pairing, thin phone web UI at `/`, Tailscale / optional public host for off-LAN. No central account. See `FEATURES.md`.
 
 ## Dev
 

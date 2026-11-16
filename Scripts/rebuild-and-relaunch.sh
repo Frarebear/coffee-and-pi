@@ -18,6 +18,11 @@ xcodebuild \
   build
 
 APP="$ROOT/build/Build/Products/Debug/Coffee & Pi.app"
+# Stamp so the relaunched app can confirm the self-edit closed loop.
+STAMP_DIR="$HOME/Library/Application Support/CoffeeAndPi"
+mkdir -p "$STAMP_DIR"
+date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STAMP_DIR/last-rebuild"
+
 # Relaunch — replaces the running app instance
 pkill -f "Coffee & Pi.app/Contents/MacOS/Coffee & Pi" 2>/dev/null || true
 sleep 0.4

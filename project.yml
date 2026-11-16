@@ -25,6 +25,8 @@ targets:
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Coffee & Pi finds and serves your other devices on the local network."
         INFOPLIST_KEY_NSBonjourServices: ["_coffeeandpi._tcp."]
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Coffee & Pi uses the mic for composer dictation."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Coffee & Pi turns speech into composer text."
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
